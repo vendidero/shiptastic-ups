@@ -190,15 +190,25 @@ class Api {
 		$services                      = $label->get_services();
 		$phone_is_required             = ! $shipment->is_shipping_domestic();
 		$email_is_required             = false;
+		$service_data                  = array();
+
+		$shipper_address_lines = array();
+
+		if ( $shipment->get_sender_address_2() ) {
+			$shipper_address_lines[] = $shipment->get_sender_address_2();
+		}
+
+		$shipper_address_lines[] = $shipment->get_sender_address_1();
 
 		$shipper = array(
 			'Name'                    => $this->limit_length( $shipment->get_sender_company() ? $shipment->get_sender_company() : $shipment->get_formatted_sender_full_name(), 35 ),
 			'AttentionName'           => $this->limit_length( $shipment->get_formatted_sender_full_name(), 35 ),
+			'CompanyDisplayableName'  => $this->limit_length( $shipment->get_sender_company(), 35 ),
 			'TaxIdentificationNumber' => $this->limit_length( $shipment->get_sender_customs_reference_number(), 15 ),
 			'EMailAddress'            => $this->limit_length( $shipment->get_sender_email(), 50 ),
 			'ShipperNumber'           => Package::get_account_number(),
 			'Address'                 => array(
-				'AddressLine' => $shipment->get_sender_address_1() . ( $shipment->get_sender_address_2() ? "\n" . $shipment->get_sender_address_2() : "" ),
+				'AddressLine' => $shipper_address_lines,
 				'City'        => $shipment->get_sender_city(),
 				'PostalCode'  => $shipment->get_sender_postcode(),
 				'StateProvinceCode' => $shipment->get_sender_state(),
@@ -212,12 +222,23 @@ class Api {
 			);
 		}
 
+		$ship_from = $shipper;
+		unset( $ship_from['ShipperNumber'] );
+
+		$ship_to_address_lines = array();
+
+		if ( $shipment->get_address_2() ) {
+			$ship_to_address_lines[] = $shipment->get_address_2();
+		}
+
+		$ship_to_address_lines[] = $shipment->get_address_1();
+
 		$ship_to = array(
 			'Name'                    => $this->limit_length( $shipment->get_company() ? $shipment->get_company() : $shipment->get_formatted_full_name(), 35 ),
 			'AttentionName'           => $this->limit_length( $shipment->get_formatted_full_name(), 35 ),
 			'TaxIdentificationNumber' => $this->limit_length( $shipment->get_customs_reference_number(), 15 ),
 			'Address'                 => array(
-				'AddressLine' => $shipment->get_address_1() . ( $shipment->get_address_2() ? "\n" . $shipment->get_address_2() : "" ),
+				'AddressLine' => $ship_to_address_lines,
 				'City'        => $shipment->get_city(),
 				'PostalCode'  => $shipment->get_postcode(),
 				'StateProvinceCode' => $shipment->get_state(),
@@ -229,21 +250,172 @@ class Api {
 			$ship_to['ResidentialAddressIndicator'] = 'yes';
 		}
 
-		if ( $phone_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_phone', false ) && $shipment->get_phone() ) ) {
+		if ( $phone_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_phone', false, $label ) && $shipment->get_phone() ) ) {
 			$ship_to['Phone'] = array(
 				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_phone() ), 15 )
 			);
 		}
 
-		if ( $email_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_email', false ) && $shipment->get_email() ) ) {
+		if ( $email_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_email', false, $label ) && $shipment->get_email() ) ) {
 			$ship_to['EMailAddress'] = $shipment->get_email();
 		}
+
+		$customs_data = $label->get_customs_data();
+
+		if ( $shipment->is_shipping_international() ) {
+			$available_international_form_types = array(
+				'01' => _x( 'Invoice', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'03' => _x( 'CO', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'04' => _x( 'NAFTA CO', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'05' => _x( 'Partial Invoice', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'06' => _x( 'Packinglist', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'07' => _x( 'Customer Generated Forms', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'08' => _x( 'Air Freight Packing List', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'09' => _x( 'CN22 Form', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'10' => _x( 'UPS Premium Care Form', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+				'11' => _x( 'EEI', 'ups-international-form-types', 'woocommerce-germanized-ups' ),
+			);
+
+			$cn22_content = array();
+			$products     = array();
+
+			foreach( $customs_data['items'] as $item ) {
+				$cn22_content[] = array(
+					'CN22ContentQuantity' => $item['quantity'],
+					'CN22ContentDescription' => $this->limit_length( $item['description'], 105 ),
+					'CN22ContentWeight' => array(
+						'UnitOfMeasurement' => array(
+							'Code' => 'lbs',
+						),
+						'Weight' => wc_format_decimal( wc_get_weight( $item['gross_weight_in_kg'], 'lbs', 'kg' ), 2 ),
+					),
+					'CN22ContentTotalValue' => wc_format_decimal( $item['value'] ),
+					'CN22ContentCurrencyCode' => 'USD',
+					'CN22ContentCountryOfOrigin' => $item['origin_code'],
+					'CN22ContentTariffNumber' => $item['tariff_number'],
+				);
+
+				$products[] = array(
+					'Description' => $this->limit_length( $item['description'], 35 ),
+					'Unit' => array(
+						'Number' => $item['quantity'],
+						'Value' => $item['single_value'],
+						'UnitOfMeasurement' => array(
+							'Code' => 'PCS',
+						),
+					),
+					'CommodityCode' => $item['tariff_number'],
+					'OriginCountryCode' => $item['origin_code'],
+					'ProductWeight' => array(
+						'UnitOfMeasurement' => array(
+							'Code' => 'kgs'
+						),
+						'Weight' => wc_format_decimal( $item['gross_weight_in_kg'], 1 ),
+					),
+					'InvoiceNumber' => '',
+					'InvoiceDate' => '',
+					'PurchaseOrderNumber' => $shipment->get_order_number(),
+				);
+			}
+
+			$available_cn22_types = array(
+				'1' => _x( 'Gift', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'2' => _x( 'Documents', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'3' => _x( 'Commercial Sample', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'4' => _x( 'Other', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+			);
+
+			$default_cn22_type = '4';
+
+			$cn22 = array(
+				'LabelSize' => '1',
+				'PrintsPerPage' => '1',
+				'LabelPrintType' => 'pdf',
+				'CN22Type' => array_key_exists( $default_cn22_type, $available_cn22_types ) ? $default_cn22_type : '4',
+				'CN22Content' => $cn22_content,
+			);
+
+			if ( '4' === $cn22['CN22Type'] ) {
+				$cn22['CN22OtherDescription'] = $this->limit_length( $customs_data['export_type_description'], 20 );
+			}
+
+			$available_shipment_terms = array(
+				'CFR' => _x( 'Cost and Freight', 'ups', 'woocommerce-germanized-ups' ),
+				'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'woocommerce-germanized-ups' ),
+				'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'woocommerce-germanized-ups' ),
+				'CPT' => _x( 'Carriage Paid To', 'ups', 'woocommerce-germanized-ups' ),
+				'DAF' => _x( 'Delivered at Frontier', 'ups', 'woocommerce-germanized-ups' ),
+				'DDP' => _x( 'Delivery Duty Paid', 'ups', 'woocommerce-germanized-ups' ),
+				'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'woocommerce-germanized-ups' ),
+				'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'woocommerce-germanized-ups' ),
+				'DES' => _x( 'Delivered Ex Ship', 'ups', 'woocommerce-germanized-ups' ),
+				'EXW' => _x( 'Ex Works', 'ups', 'woocommerce-germanized-ups' ),
+				'FAS' => _x( 'Free Alongside Ship', 'ups', 'woocommerce-germanized-ups' ),
+				'FCA' => _x( 'Free Carrier', 'ups', 'woocommerce-germanized-ups' ),
+				'FOB' => _x( 'Free On Board', 'ups', 'woocommerce-germanized-ups' ),
+			);
+
+			$default_terms = 'DDP';
+			$default_reason = 'SALE';
+
+			$available_reasons_for_export = array(
+				'SALE' => _x( 'Sale', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'GIFT' => _x( 'Gift', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'SAMPLE' => _x( 'Sample', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'RETURN' => _x( 'Return', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'REPAIR' => _x( 'Repair', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+			);
+
+			$service_data['InternationalForms'] = array(
+				'FormType' => '09',
+				'CN22Form' => $cn22,
+				'TermsOfShipment' => array_key_exists( $default_terms, $available_shipment_terms ) ? $default_terms : 'DDP',
+				'ReasonForExport' => array_key_exists( $default_reason, $available_reasons_for_export ) ? $default_reason : 'SALE',
+				'CurrencyCode'    => $customs_data['currency']
+			);
+		}
+
+		$locale = '';
+
+		if ( in_array( $shipment->get_country(), array( 'DE', 'AT' ), true ) ) {
+			$locale = 'de_DE';
+		}
+
+		$available_packaging_types = array(
+			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'03' => _x( 'Tube', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'04' => _x( 'PAK', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'21' => _x( 'UPS Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'24' => _x( 'UPS 25KG Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'25' => _x( 'UPS 10KG Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'30' => _x( 'Pallet', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'2a' => _x( 'Small Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'2b' => _x( 'Medium Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'2c' => _x( 'Large Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'56' => _x( 'Flats', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'57' => _x( 'Parcels', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'58' => _x( 'BPM', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'59' => _x( 'First Class', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'60' => _x( 'Priority', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'61' => _x( 'Machineables', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'62' => _x( 'Irregulars', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'63' => _x( 'Parcel Post', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'64' => _x( 'BPM Parcel', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'65' => _x( 'Media Mail', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'66' => _x( 'BPM Flat', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'67' => _x( 'Standard Flat', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+		);
+
+		$default_packaging_type = '02';
 
 		$request = array(
 			'ShipmentRequest' => array(
 				'Shipment' => array(
-					'Description' => ' ',
+					'Locale' => $locale,
+					'Description' => $this->limit_length( $customs_data['export_type_description'], 50 ),
 					'Shipper' => $shipper,
+					'ShipFrom' => $ship_from,
 					'ShipTo' => $ship_to,
 					'PaymentInformation' => array(
 						'ShipmentCharge' => array(
@@ -257,11 +429,13 @@ class Api {
 						'Code' => '11',
 						'Description' => 'UPS Standard'
 					),
+					//'NumOfPiecesInShipment' => $shipment->get_item_count(),
+					'ShipmentServiceOptions' => $service_data,
 					'Package' => array(
 						// Detailed item description
-						'Description' => ' ',
+						'Description' => $this->limit_length( $customs_data['export_type_description'], 35 ),
 						'Packaging' => array(
-							'Code' => '02',
+							'Code' => array_key_exists( $default_packaging_type, $available_packaging_types ) ? $default_packaging_type : '02',
 						),
 						'Dimensions' => array(
 							'UnitOfMeasurement' => array(
@@ -396,7 +570,7 @@ class Api {
 	 * @return array|\WP_Error
 	 */
 	protected function get_response( $endpoint, $type = 'GET', $body_args = array() ) {
-		$url = untrailingslashit( trailingslashit( self::is_sandbox() ? 'https://wwwcie.ups.com/ship/v1/' : 'https://onlinetools.ups.com/ship/v1/' ) . $endpoint );
+		$url = untrailingslashit( trailingslashit( self::is_sandbox() ? 'https://wwwcie.ups.com/ship/v2205/' : 'https://onlinetools.ups.com/ship/v2205/' ) . $endpoint );
 
 		if ( 'GET' === $type ) {
 			$response = wp_remote_get(
