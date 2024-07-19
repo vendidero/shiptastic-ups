@@ -14,14 +14,6 @@ defined( 'ABSPATH' ) || exit;
 
 class UPS extends Auto {
 
-	protected function get_default_label_minimum_shipment_weight() {
-		return 0.01;
-	}
-
-	protected function get_default_label_default_shipment_weight() {
-		return 0.5;
-	}
-
 	public function get_title( $context = 'view' ) {
 		return _x( 'UPS', 'ups', 'woocommerce-germanized-ups' );
 	}
@@ -78,188 +70,176 @@ class UPS extends Auto {
 		$this->update_meta_data( 'api_username', $username );
 	}
 
-	public function get_setting_sections() {
-		$sections = parent::get_setting_sections();
-
-		return $sections;
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_return_label_fields( $shipment ) {
-		$default_args = $this->get_default_label_props( $shipment );
-		$default      = $this->get_default_label_product( $shipment );
-		$available    = $this->get_available_label_products( $shipment );
-
-		$settings = array(
-			array(
-				'id'          => 'product_id',
-				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ), // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
-				'description' => '',
-				'options'     => $this->get_available_label_products( $shipment ),
-				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
-				'type'        => 'select',
+	public function get_supported_label_reference_types( $shipment_type = 'simple' ) {
+		$reference_types = array(
+			'ref_1' => array(
+				'label'      => _x( 'Reference 1', 'ups', 'woocommerce-germanized-ups' ),
+				'default'    => 'return' === $shipment_type ? _x( 'Return #{shipment_number}, order {order_number}', 'ups', 'woocommerce-germanized-ups' ) : _x( '#{shipment_number}, order {order_number}', 'ups', 'woocommerce-germanized-ups' ),
+				'max_length' => 35,
+			),
+			'ref_2' => array(
+				'label'      => _x( 'Reference 2', 'ups', 'woocommerce-germanized-ups' ),
+				'default'    => '',
+				'max_length' => 35,
 			),
 		);
 
-		return $settings;
+		return $reference_types;
 	}
 
 	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @see https://developer.ups.com/api/reference/rating/appendix?loc=en_NL#tabs_1_tabPane_7
 	 *
-	 * @return array
+	 * @return void
 	 */
-	protected function get_simple_label_fields( $shipment ) {
-		$settings     = parent::get_simple_label_fields( $shipment );
-		$default_args = $this->get_default_label_props( $shipment );
-		$services     = array();
+	protected function register_products() {
+		$base_country  = \Vendidero\Germanized\Shipments\Package::get_base_country();
+		$is_eu         = \Vendidero\Germanized\Shipments\Package::country_belongs_to_eu_customs_area( $base_country );
+		$general       = array();
+		$international = array();
+		$domestic      = array();
 
-		if ( ! empty( $services ) ) {
-			$settings[] = array(
-				'type'         => 'services_start',
-				'id'           => '',
-				'hide_default' => ! empty( $default_args['services'] ) ? false : true,
+		$base_available = array(
+			'ups_96' => _x( 'UPS Worldwide Express Freight', 'ups', 'woocommerce-germanized-ups' ),
+			'ups_71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'woocommerce-germanized-ups' ),
+			'ups_17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'woocommerce-germanized-ups' ),
+			'ups_72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'woocommerce-germanized-ups' ),
+		);
+
+		if ( 'US' === $base_country ) {
+			$general = array(
+				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
 			);
 
-			$settings = array_merge( $settings, $services );
-		}
+			$international = array(
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+			);
 
-		return $settings;
-	}
+			$domestic = array(
+				'ups_02' => _x( 'UPS 2nd Day Air', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_59' => _x( 'UPS 2nd Day Air A.M.', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_12' => _x( 'UPS 3 Day Select', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_03' => _x( 'UPS Ground', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_01' => _x( 'UPS Next Day Air', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_14' => _x( 'UPS Next Day Air Early', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_13' => _x( 'UPS Next Day Air Saver', 'ups', 'woocommerce-germanized-ups' ),
+			);
+		} elseif ( 'CA' === $base_country ) {
+			$general = array(
+				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+			);
 
-	/**
-	 * @param Shipment $shipment
-	 * @param $props
-	 *
-	 * @return \WP_Error|mixed
-	 */
-	protected function validate_label_request( $shipment, $args = array() ) {
-		if ( 'return' === $shipment->get_type() ) {
-			$args = $this->validate_return_label_args( $shipment, $args );
+			$domestic = array(
+				'ups_02' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_13' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_01' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_14' => _x( 'UPS Express Early', 'ups', 'woocommerce-germanized-ups' ),
+			);
+
+			$international = array(
+				'ups_65' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+			);
+
+			$this->register_product(
+				'ups_12',
+				array(
+					'label'     => _x( 'UPS 3 Day Select', 'ups', 'woocommerce-germanized-ups' ),
+					'countries' => array( 'CA', 'US' ),
+				)
+			);
+		} elseif ( $is_eu ) {
+			$general = array(
+				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_08' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+			);
+
+			$domestic = array(
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
+			);
+
+			if ( 'PL' === $base_country ) {
+				$general = array(
+					'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_08' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_54' => _x( 'UPS Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_65' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
+				);
+
+				$domestic = array(
+					'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_83' => _x( 'UPS Today Dedicated Courrier', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_85' => _x( 'UPS Today Express', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_86' => _x( 'UPS Today Express Saver', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_82' => _x( 'UPS Today Standard', 'ups', 'woocommerce-germanized-ups' ),
+				);
+			} elseif ( 'DE' === $base_country ) {
+				$domestic['ups_74'] = _x( 'UPS Express 12:00', 'ups', 'woocommerce-germanized-ups' );
+			}
 		} else {
-			$args = $this->validate_simple_label_args( $shipment, $args );
+			$general = array(
+				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+			);
 		}
 
-		return $args;
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 * @param $args
-	 *
-	 * @return \WP_Error|mixed
-	 */
-	protected function validate_return_label_args( $shipment, $args = array() ) {
-		return $args;
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 * @param $args
-	 *
-	 * @return \WP_Error|mixed
-	 */
-	protected function validate_simple_label_args( $shipment, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'product_id'    => '',
-				'services'      => array(),
-			)
+		$non_returnable = array(
+			'ups_13',
+			'ups_59',
+			'ups_82',
+			'ups_83',
+			'ups_84',
+			'ups_85',
+			'ups_86',
 		);
 
-		$error = new \WP_Error();
-
-		// Do only allow valid services
-		if ( ! empty( $args['services'] ) ) {
-			$args['services'] = array_intersect( $args['services'], $this->get_available_label_services( $shipment ) );
-			$args['services'] = array_values( $args['services'] );
+		foreach ( $domestic as $code => $desc ) {
+			$this->register_product(
+				$code,
+				array(
+					'label'          => $desc,
+					'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
+					'zones'          => array( 'dom' ),
+				)
+			);
 		}
 
-		if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
-			return $error;
+		foreach ( array_merge_recursive( $general, $base_available ) as $code => $desc ) {
+			$this->register_product(
+				$code,
+				array(
+					'label'          => $desc,
+					'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
+				)
+			);
 		}
 
-		return $args;
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_default_label_props( $shipment ) {
-		if ( 'return' === $shipment->get_type() ) {
-			$gls_defaults = $this->get_default_return_label_props( $shipment );
-		} else {
-			$gls_defaults = $this->get_default_simple_label_props( $shipment );
+		foreach ( $international as $code => $desc ) {
+			$this->register_product(
+				$code,
+				array(
+					'label'          => $desc,
+					'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
+					'zones'          => array( 'int' ),
+				)
+			);
 		}
-
-		$defaults = parent::get_default_label_props( $shipment );
-		$defaults = array_replace_recursive( $defaults, $gls_defaults );
-
-		return $defaults;
 	}
 
-	/**
-	 * @param Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_default_return_label_props( $shipment ) {
-		$product_id = $this->get_default_label_product( $shipment );
-
-		$defaults = array(
-			'services' => array(),
-		);
-
-		return $defaults;
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
-	public function get_default_label_product( $shipment ) {
-		return '';
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_default_simple_label_props( $shipment ) {
-		$product_id = $this->get_default_label_product( $shipment );
-
-		$defaults = array(
-			'services'      => array(),
-			'shipping_date' => '',
-		);
-
-		return $defaults;
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
-	public function get_available_label_products( $shipment ) {
-		$is_return = $shipment->get_type() === 'return';
-
-		return array();
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
-	public function get_available_label_services( $shipment ) {
-		return array();
-	}
-
-	protected function get_general_settings( $for_shipping_method = false ) {
+	protected function get_general_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -268,12 +248,12 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title'   => _x( 'Access Key', 'ups', 'woocommerce-germanized-ups' ),
-				'type'    => 'password',
-				'desc'    => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To access the UPS API you\'ll need to <a href="%1$s">apply for an access key</a>.', 'gls', 'woocommerce-germanized-gls' ), '' ) . '</div>',
-				'id'      => 'api_access_password',
-				'default' => '',
-				'value'   => $this->get_setting( 'api_access_password', '' ),
+				'title'             => _x( 'Access Key', 'ups', 'woocommerce-germanized-ups' ),
+				'type'              => 'password',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To access the UPS API you\'ll need to <a href="%1$s">apply for an access key</a>.', 'gls', 'woocommerce-germanized-gls' ), '' ) . '</div>',
+				'id'                => 'api_access_password',
+				'default'           => '',
+				'value'             => $this->get_setting( 'api_access_password', '' ),
 				'custom_attributes' => array(
 					'autocomplete' => 'new-password',
 				),
@@ -318,13 +298,9 @@ class UPS extends Auto {
 			)
 		);
 
-		$general_settings = parent::get_general_settings( $for_shipping_method );
+		$general_settings = parent::get_general_settings();
 
 		return array_merge( $settings, $general_settings );
-	}
-
-	protected function get_label_settings( $for_shipping_method = false ) {
-		return array();
 	}
 
 	public function get_help_link() {

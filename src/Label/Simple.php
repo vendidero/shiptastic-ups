@@ -18,7 +18,7 @@ class Simple extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'xx'  => '',
+		'xx' => '',
 	);
 
 	public function get_type() {

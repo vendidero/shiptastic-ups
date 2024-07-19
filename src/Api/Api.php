@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\UPS\Api;
 
+use Vendidero\Germanized\Shipments\ImageToPDF;
 use Vendidero\Germanized\Shipments\ShipmentError;
 use Vendidero\Germanized\UPS\Label\Retoure;
 use Vendidero\Germanized\UPS\Label\Simple;
@@ -53,28 +54,13 @@ class Api {
 	}
 
 	/**
-	 * @param string $ref_text
-	 * @param Shipment $shipment
-	 * @param int $max_length
-	 *
-	 * @return string
-	 */
-	protected function get_reference( $shipment, $max_length = 50, $ref_text = '' ) {
-		if ( '' === $ref_text ) {
-			$ref_text = apply_filters( 'woocommerce_gzd_gls_label_api_reference', _x( 'Shipment {shipment_id}', 'gls', 'woocommerce-germanized-gls' ), $shipment );
-		}
-
-		return mb_strcut( str_replace( array( '{shipment_id}', '{order_id}' ), array( $shipment->get_shipment_number(), $shipment->get_order_number() ), $ref_text ), 0, $max_length );
-	}
-
-	/**
 	 * @param Simple|Retoure $label
 	 *
 	 * @return \WP_Error|true
 	 */
 	public function cancel_label( $label ) {
 		if ( $label->get_number() ) {
-			$response = $this->post( 'shipments/cancel/' . $label->get_number() );
+			$response = $this->delete( 'shipments/' . $this->get_api_version() . '/void/' . $label->get_number() );
 
 			if ( is_wp_error( $response ) ) {
 				return $response;
@@ -111,7 +97,7 @@ class Api {
 		$shipper_country = $shipment->get_sender_country();
 		$unit            = 'CM';
 
-		if ( in_array( $shipper_country, array( 'US', ), true ) ) {
+		if ( in_array( $shipper_country, array( 'US' ), true ) ) {
 			$unit = 'IN';
 		}
 
@@ -169,7 +155,7 @@ class Api {
 			$weight = wc_get_weight( $weight, $ups_unit, $label_unit );
 		}
 
-		return apply_filters( 'woocommerce_gzd_ups_shipment_dimension', ceil((float) $weight * 2 ) / 2, $shipment );
+		return apply_filters( 'woocommerce_gzd_ups_shipment_dimension', ceil( (float) $weight * 2 ) / 2, $shipment );
 	}
 
 	protected function format_phone_number( $phone_number ) {
@@ -178,21 +164,29 @@ class Api {
 		return $number_plain;
 	}
 
+	protected function get_api_version() {
+		return 'v2403';
+	}
+
 	/**
 	 * @param Simple|Retoure $label
 	 *
 	 * @return \WP_Error|true
 	 */
 	public function get_label( $label ) {
-		$shipment                      = $label->get_shipment();
-		$provider                      = $shipment->get_shipping_provider_instance();
-		$is_return                     = 'return' === $label->get_type();
-		$services                      = $label->get_services();
-		$phone_is_required             = ! $shipment->is_shipping_domestic();
-		$email_is_required             = false;
-		$service_data                  = array();
+		$shipment                    = $label->get_shipment();
+		$provider                    = $shipment->get_shipping_provider_instance();
+		$is_return                   = 'return' === $label->get_type();
+		$services                    = $label->get_services();
+		$phone_is_required           = ! $shipment->is_shipping_domestic();
+		$email_is_required           = false;
+		$service_data                = array();
+		$shipper_address_lines       = array();
+		$supports_email_notification = $shipment->is_shipping_international() ? true : false;
 
-		$shipper_address_lines = array();
+		if ( $order = $shipment->get_order() ) {
+			$supports_email_notification = wc_gzd_get_shipment_order( $order )->supports_third_party_email_transmission();
+		}
 
 		if ( $shipment->get_sender_address_2() ) {
 			$shipper_address_lines[] = $shipment->get_sender_address_2();
@@ -208,9 +202,9 @@ class Api {
 			'EMailAddress'            => $this->limit_length( $shipment->get_sender_email(), 50 ),
 			'ShipperNumber'           => Package::get_account_number(),
 			'Address'                 => array(
-				'AddressLine' => $shipper_address_lines,
-				'City'        => $shipment->get_sender_city(),
-				'PostalCode'  => $shipment->get_sender_postcode(),
+				'AddressLine'       => $shipper_address_lines,
+				'City'              => $shipment->get_sender_city(),
+				'PostalCode'        => $shipment->get_sender_postcode(),
 				'StateProvinceCode' => $shipment->get_sender_state(),
 				'CountryCode'       => $shipment->get_sender_country(),
 			),
@@ -218,7 +212,7 @@ class Api {
 
 		if ( ! empty( $shipment->get_sender_phone() ) ) {
 			$shipper['Phone'] = array(
-				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_sender_phone() ), 15 )
+				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_sender_phone() ), 15 ),
 			);
 		}
 
@@ -238,9 +232,9 @@ class Api {
 			'AttentionName'           => $this->limit_length( $shipment->get_formatted_full_name(), 35 ),
 			'TaxIdentificationNumber' => $this->limit_length( $shipment->get_customs_reference_number(), 15 ),
 			'Address'                 => array(
-				'AddressLine' => $ship_to_address_lines,
-				'City'        => $shipment->get_city(),
-				'PostalCode'  => $shipment->get_postcode(),
+				'AddressLine'       => $ship_to_address_lines,
+				'City'              => $shipment->get_city(),
+				'PostalCode'        => $shipment->get_postcode(),
 				'StateProvinceCode' => $shipment->get_state(),
 				'CountryCode'       => $shipment->get_country(),
 			),
@@ -252,7 +246,7 @@ class Api {
 
 		if ( $phone_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_phone', false, $label ) && $shipment->get_phone() ) ) {
 			$ship_to['Phone'] = array(
-				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_phone() ), 15 )
+				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_phone() ), 15 ),
 			);
 		}
 
@@ -279,42 +273,39 @@ class Api {
 			$cn22_content = array();
 			$products     = array();
 
-			foreach( $customs_data['items'] as $item ) {
+			foreach ( $customs_data['items'] as $item ) {
 				$cn22_content[] = array(
-					'CN22ContentQuantity' => $item['quantity'],
-					'CN22ContentDescription' => $this->limit_length( $item['description'], 105 ),
-					'CN22ContentWeight' => array(
+					'CN22ContentQuantity'        => $item['quantity'],
+					'CN22ContentDescription'     => $this->limit_length( $item['description'], 105 ),
+					'CN22ContentWeight'          => array(
 						'UnitOfMeasurement' => array(
 							'Code' => 'lbs',
 						),
-						'Weight' => wc_format_decimal( wc_get_weight( $item['gross_weight_in_kg'], 'lbs', 'kg' ), 2 ),
+						'Weight'            => wc_format_decimal( wc_get_weight( $item['gross_weight_in_kg'], 'lbs', 'kg' ), 2 ),
 					),
-					'CN22ContentTotalValue' => wc_format_decimal( $item['value'] ),
-					'CN22ContentCurrencyCode' => 'USD',
+					'CN22ContentTotalValue'      => wc_format_decimal( $item['value'] ),
+					'CN22ContentCurrencyCode'    => 'USD',
 					'CN22ContentCountryOfOrigin' => $item['origin_code'],
-					'CN22ContentTariffNumber' => $item['tariff_number'],
+					'CN22ContentTariffNumber'    => $item['tariff_number'],
 				);
 
 				$products[] = array(
-					'Description' => $this->limit_length( $item['description'], 35 ),
-					'Unit' => array(
-						'Number' => $item['quantity'],
-						'Value' => $item['single_value'],
+					'Description'       => $this->limit_length( $item['description'], 35 ),
+					'Unit'              => array(
+						'Number'            => $item['quantity'],
+						'Value'             => $item['single_value'],
 						'UnitOfMeasurement' => array(
 							'Code' => 'PCS',
 						),
 					),
-					'CommodityCode' => $item['tariff_number'],
+					'CommodityCode'     => $item['tariff_number'],
 					'OriginCountryCode' => $item['origin_code'],
-					'ProductWeight' => array(
+					'ProductWeight'     => array(
 						'UnitOfMeasurement' => array(
-							'Code' => 'kgs'
+							'Code' => 'kgs',
 						),
-						'Weight' => wc_format_decimal( $item['gross_weight_in_kg'], 1 ),
+						'Weight'            => wc_format_decimal( $item['gross_weight_in_kg'], 1 ),
 					),
-					'InvoiceNumber' => '',
-					'InvoiceDate' => '',
-					'PurchaseOrderNumber' => $shipment->get_order_number(),
 				);
 			}
 
@@ -328,11 +319,11 @@ class Api {
 			$default_cn22_type = '4';
 
 			$cn22 = array(
-				'LabelSize' => '1',
-				'PrintsPerPage' => '1',
+				'LabelSize'      => '1',
+				'PrintsPerPage'  => '1',
 				'LabelPrintType' => 'pdf',
-				'CN22Type' => array_key_exists( $default_cn22_type, $available_cn22_types ) ? $default_cn22_type : '4',
-				'CN22Content' => $cn22_content,
+				'CN22Type'       => array_key_exists( $default_cn22_type, $available_cn22_types ) ? $default_cn22_type : '4',
+				'CN22Content'    => $cn22_content,
 			);
 
 			if ( '4' === $cn22['CN22Type'] ) {
@@ -355,24 +346,25 @@ class Api {
 				'FOB' => _x( 'Free On Board', 'ups', 'woocommerce-germanized-ups' ),
 			);
 
-			$default_terms = 'DDP';
+			$default_terms  = 'DDP';
 			$default_reason = 'SALE';
 
 			$available_reasons_for_export = array(
-				'SALE' => _x( 'Sale', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'GIFT' => _x( 'Gift', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'SAMPLE' => _x( 'Sample', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'RETURN' => _x( 'Return', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'REPAIR' => _x( 'Repair', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'SALE'             => _x( 'Sale', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'GIFT'             => _x( 'Gift', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'SAMPLE'           => _x( 'Sample', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'RETURN'           => _x( 'Return', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'REPAIR'           => _x( 'Repair', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
 				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
 			);
 
 			$service_data['InternationalForms'] = array(
-				'FormType' => '09',
-				'CN22Form' => $cn22,
+				'FormType'        => '09',
+				'CN22Form'        => $cn22,
 				'TermsOfShipment' => array_key_exists( $default_terms, $available_shipment_terms ) ? $default_terms : 'DDP',
 				'ReasonForExport' => array_key_exists( $default_reason, $available_reasons_for_export ) ? $default_reason : 'SALE',
-				'CurrencyCode'    => $customs_data['currency']
+				'CurrencyCode'    => $customs_data['currency'],
+				'Product'         => $products,
 			);
 		}
 
@@ -409,107 +401,111 @@ class Api {
 
 		$default_packaging_type = '02';
 
+		$api_references = array();
+		$references     = array_filter(
+			array(
+				$provider->get_formatted_label_reference( $label, $label->get_type(), 'ref_1' ),
+				$provider->get_formatted_label_reference( $label, $label->get_type(), 'ref_2' ),
+			)
+		);
+
+		foreach ( $references as $ref ) {
+			$api_references[] = array(
+				'Value' => $ref,
+			);
+		}
+
 		$request = array(
 			'ShipmentRequest' => array(
+				'Request'  => array(
+					'RequestOption' => 'novalidate',
+				),
 				'Shipment' => array(
-					'Locale' => $locale,
-					'Description' => $this->limit_length( $customs_data['export_type_description'], 50 ),
-					'Shipper' => $shipper,
-					'ShipFrom' => $ship_from,
-					'ShipTo' => $ship_to,
-					'PaymentInformation' => array(
+					'Locale'                 => $locale,
+					'Description'            => $this->limit_length( $customs_data['export_type_description'], 50 ),
+					'Shipper'                => $shipper,
+					'ShipFrom'               => $ship_from,
+					'ShipTo'                 => $ship_to,
+					'PaymentInformation'     => array(
 						'ShipmentCharge' => array(
-							'Type' => '01',
+							'Type'        => '01',
 							'BillShipper' => array(
-								'AccountNumber' => Package::get_account_number()
+								'AccountNumber' => Package::get_account_number(),
 							),
-						)
+						),
 					),
-					'Service' => array(
-						'Code' => '11',
-						'Description' => 'UPS Standard'
+					'Service'                => array(
+						'Code' => str_replace( 'ups_', '', $label->get_product_id() ),
 					),
-					//'NumOfPiecesInShipment' => $shipment->get_item_count(),
+					'NumOfPiecesInShipment'  => $shipment->get_item_count(),
 					'ShipmentServiceOptions' => $service_data,
-					'Package' => array(
+					'ReferenceNumber'        => $api_references,
+					'Package'                => array(
 						// Detailed item description
-						'Description' => $this->limit_length( $customs_data['export_type_description'], 35 ),
-						'Packaging' => array(
+						'Description'   => $this->limit_length( $customs_data['export_type_description'], 35 ),
+						'Packaging'     => array(
 							'Code' => array_key_exists( $default_packaging_type, $available_packaging_types ) ? $default_packaging_type : '02',
 						),
-						'Dimensions' => array(
+						'Dimensions'    => array(
 							'UnitOfMeasurement' => array(
 								'Code' => $this->get_dimension_unit( $shipment ),
 							),
-							'Length' => $this->get_dimension( $label->get_length(), $shipment ),
-							'Width'  => $this->get_dimension( $label->get_width(), $shipment ),
-							'Height' => $this->get_dimension( $label->get_height(), $shipment )
+							'Length'            => $this->get_dimension( $label->get_length(), $shipment ),
+							'Width'             => $this->get_dimension( $label->get_width(), $shipment ),
+							'Height'            => $this->get_dimension( $label->get_height(), $shipment ),
 						),
 						'PackageWeight' => array(
 							'UnitOfMeasurement' => array(
 								'Code' => $this->get_weight_unit( $shipment ),
 							),
-							'Weight' => $this->get_weight( $label->get_weight(), $shipment ),
-						)
+							'Weight'            => $this->get_weight( $label->get_weight(), $shipment ),
+						),
 					),
-					'LabelSpecification' => array(
+					'LabelSpecification'     => array(
 						'LabelImageFormat' => array(
 							'Code' => 'GIF',
-						)
+						),
 					),
-					'HTTPUserAgent' => 'Mozilla/4.5'
 				),
 			),
 		);
 
 		$request  = $this->clean_request( $request );
-		$response = $this->post( 'shipments', apply_filters( 'woocommerce_gzd_ups_label_api_request', $request, $label ) );
+		$response = $this->post( 'shipments/' . $this->get_api_version() . '/ship', apply_filters( 'woocommerce_gzd_ups_label_api_request', $request, $label ) );
 
-		if ( ! is_wp_error( $response ) ) {
-			$error         = new ShipmentError();
-			$parcel_data   = $response['body']['ShipmentResponse'];
+		if ( ! is_wp_error( $response ) && isset( $response['body'] ) ) {
+			$error       = new ShipmentError();
+			$parcel_data = $response['body']['ShipmentResponse'];
 
 			if ( 1 !== absint( $parcel_data['Response']['ResponseStatus']['Code'] ) ) {
-				$error->add( 'error', _x( 'There was an unkown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
+				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
 				return $error;
 			}
 
 			$shipment_references = $parcel_data['ShipmentResults'];
 			$charges             = wc_clean( $shipment_references['ShipmentCharges']['TotalCharges']['MonetaryValue'] );
 			$tracking_id         = wc_clean( $shipment_references['ShipmentIdentificationNumber'] );
-			$package_results     = $shipment_references['PackageResults'];
+			$package_results     = count( $shipment_references['PackageResults'] ) > 0 ? $shipment_references['PackageResults'][0] : array();
 
 			$label->set_number( $tracking_id );
 
 			if ( isset( $package_results['ShippingLabel']['GraphicImage'] ) ) {
-				$gif = $package_results['ShippingLabel']['GraphicImage']; // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-
-				/**
-				 * For px to mm conversion.
-				 * @see https://stackoverflow.com/questions/10040309/how-to-maintain-image-quality-with-fpdf-and-php
-				 */
-				$scale_factor = 2.83;
-
-				$image  = 'data://text/plain;base64,' . $gif;
-				$info   = wp_getimagesize( $image );
-				$width  = $info[0] / $scale_factor;
-				$height = $info[1] / $scale_factor;
+				$gif = base64_decode( $package_results['ShippingLabel']['GraphicImage'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 
 				try {
-					$pdf = new \FPDF( 'landscape', 'mm', array( $width, $height ) );
+					$converter = new ImageToPDF( 'landscape' );
+					$converter->set_rotation( 90 );
+					$converter->import_image( $gif );
 
-					$pdf->AddPage();
-					$pdf->Image( $image, 0, 0, $width, $height, 'gif' );
+					$pdf = $converter->Output( 'S' );
 
-					$stream = $pdf->Output( 'label.pdf', 'S' );
-
-					if ( $path = $label->upload_label_file( $stream ) ) {
+					if ( $path = $label->upload_label_file( $pdf ) ) {
 						$label->set_path( $path );
 					} else {
 						$error->add( 'upload', _x( 'Error while uploading UPS label.', 'ups', 'woocommerce-germanized-ups' ) );
 					}
 				} catch ( \Exception $e ) {
-					$error->add( 'upload', sprintf( _x( 'Error while uploading UPS label: %1$s', 'ups', 'woocommerce-germanized-ups' ), $e->getMessage() ) );
+					$error->add( 'upload', sprintf( _x( 'Could not convert GIF to PDF file: %1$s', 'ups', 'woocommerce-germanized-ups' ), $e->getMessage() ) );
 				}
 			}
 
@@ -539,27 +535,81 @@ class Api {
 		return $array;
 	}
 
-	protected function get_api_base_url() {
-		return trailingslashit( Package::get_api_url() ) . 'backend/rs/shipments';
-	}
-
 	protected function get_timeout( $request_type = 'GET' ) {
 		return 'GET' === $request_type ? 30 : 100;
 	}
 
 	protected function get_header() {
 		$headers = array(
-			'Content-Type'        => 'application/json',
-			'Accept'              => 'application/json',
-			'User-Agent'          => 'Germanized/' . Package::get_version(),
-			'transId'             => uniqid(),
-			'transactionSrc'      => 'Germanized/' . Package::get_version(),
-			'Username'            => Package::get_api_username(),
-			'Password'            => Package::get_api_password(),
-			'AccessLicenseNumber' => Package::get_api_access_key(),
+			'Content-Type'   => 'application/json',
+			'Accept'         => 'application/json',
+			'User-Agent'     => 'Germanized/' . Package::get_version(),
+			'transId'        => uniqid(),
+			'transactionSrc' => 'Germanized/' . Package::get_version(),
 		);
 
 		return $headers;
+	}
+
+	protected function has_auth() {
+		return $this->get_access_token() ? true : false;
+	}
+
+	protected function get_access_token() {
+		$access_token = get_transient( 'woocommerce_gzd_ups_access_token' );
+
+		if ( ! empty( $access_token ) ) {
+			if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
+				$decrypted = \WC_GZD_Secret_Box_Helper::decrypt( $access_token );
+
+				if ( ! is_wp_error( $decrypted ) ) {
+					$access_token = $decrypted;
+				}
+			}
+
+			return $access_token;
+		} else {
+			return false;
+		}
+	}
+
+	protected function auth() {
+		$api_url = self::is_sandbox() ? 'https://wwwcie.ups.com/security/v1/oauth/token' : 'https://onlinetools.ups.com/security/v1/oauth/token';
+
+		$response = $this->post(
+			$api_url,
+			array(
+				'grant_type' => 'client_credentials',
+			),
+			array(
+				'x-merchant-id' => Package::get_account_number(),
+				'Content-Type'  => 'application/x-www-form-urlencoded',
+				'Authorization' => 'Basic ' . base64_encode( Package::get_api_username() . ':' . Package::get_api_password() ),
+			),
+		);
+
+		if ( ! is_wp_error( $response ) ) {
+			$access_token = isset( $response['body']['access_token'] ) ? $response['body']['access_token'] : '';
+			$expires_in   = absint( isset( $response['body']['expires_in'] ) ? $response['body']['expires_in'] : 3599 );
+
+			if ( ! empty( $access_token ) ) {
+				if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
+					$encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $access_token );
+
+					if ( ! is_wp_error( $encrypted ) ) {
+						$access_token = $encrypted;
+					}
+				}
+
+				set_transient( 'woocommerce_gzd_ups_access_token', $access_token, $expires_in );
+
+				return true;
+			}
+
+			return new \WP_Error( 'auth', 'Error while authenticating with UPS' );
+		} else {
+			return $response;
+		}
 	}
 
 	/**
@@ -569,24 +619,67 @@ class Api {
 	 *
 	 * @return array|\WP_Error
 	 */
-	protected function get_response( $endpoint, $type = 'GET', $body_args = array() ) {
-		$url = untrailingslashit( trailingslashit( self::is_sandbox() ? 'https://wwwcie.ups.com/ship/v2205/' : 'https://onlinetools.ups.com/ship/v2205/' ) . $endpoint );
+	protected function get_response( $endpoint, $type = 'GET', $body_args = array(), $header = array() ) {
+		$is_auth_request = false;
+
+		if ( strstr( $endpoint, 'oauth' ) ) {
+			$is_auth_request = true;
+		} else {
+			if ( ! $this->has_auth() ) {
+				$auth_response = $this->auth();
+
+				if ( is_wp_error( $auth_response ) ) {
+					return $auth_response;
+				}
+			}
+		}
+
+		$url          = wc_is_valid_url( $endpoint ) ? $endpoint : untrailingslashit( trailingslashit( self::is_sandbox() ? 'https://wwwcie.ups.com/api' : 'https://onlinetools.ups.com/api' ) . $endpoint );
+		$headers      = array_replace_recursive( $this->get_header(), $header );
+		$content_type = isset( $headers['Content-Type'] ) ? $headers['Content-Type'] : 'application/json';
+		$code         = 400;
+
+		if ( ! $is_auth_request && $this->has_auth() ) {
+			$headers['Authorization'] = 'Bearer ' . $this->get_access_token();
+		}
 
 		if ( 'GET' === $type ) {
 			$response = wp_remote_get(
 				esc_url_raw( $url ),
 				array(
-					'headers' => $this->get_header(),
+					'headers' => $headers,
 					'timeout' => $this->get_timeout( $type ),
 				)
 			);
 		} elseif ( 'POST' === $type ) {
+			if ( 'application/x-www-form-urlencoded' === $content_type ) {
+				$body = http_build_query( $body_args );
+			} else {
+				$body = wp_json_encode( $body_args, JSON_PRETTY_PRINT );
+			}
+
 			$response = wp_remote_post(
 				esc_url_raw( $url ),
 				array(
-					'headers' => $this->get_header(),
+					'headers' => $headers,
 					'timeout' => $this->get_timeout( $type ),
-					'body'    => wp_json_encode( $body_args, JSON_PRETTY_PRINT ),
+					'body'    => $body,
+				)
+			);
+		} elseif ( 'DELETE' === $type ) {
+			if ( 'application/x-www-form-urlencoded' === $content_type ) {
+				$body = http_build_query( $body_args );
+			} else {
+				$body = wp_json_encode( $body_args, JSON_PRETTY_PRINT );
+			}
+
+			$response = wp_remote_request(
+				esc_url_raw( $url ),
+				array(
+					'method'  => 'DELETE',
+					'headers' => $headers,
+					'timeout' => $this->get_timeout( $type ),
+					'body'    => $body,
 				)
 			);
 		}
@@ -601,7 +694,14 @@ class Api {
 			$headers = wp_remote_retrieve_headers( $response );
 
 			if ( (int) $code >= 300 ) {
-				return $this->parse_error( $code, $body, $headers );
+				if ( in_array( (int) $code, array( 401, 403 ), true ) && ! $is_auth_request && ! isset( $body_args['is_retry'] ) ) {
+					delete_transient( 'woocommerce_gzd_ups_access_token' );
+					$body_args['is_retry'] = true;
+
+					return $this->get_response( $endpoint, $type, $body_args, $header );
+				}
+
+				return $this->parse_error( $body, $headers, $code );
 			}
 
 			return array(
@@ -612,37 +712,38 @@ class Api {
 			);
 		}
 
-		return new \WP_Error( 'error', sprintf( esc_html_x( 'Error while querying UPS endpoint %s', 'ups', 'woocommerce-germanized-ups' ), esc_url_raw( $endpoint ) ) );
+		return new \WP_Error( absint( $code ), sprintf( esc_html_x( 'Error while querying UPS endpoint %s', 'ups', 'woocommerce-germanized-ups' ), esc_url_raw( $endpoint ) ) );
 	}
 
-	protected function post( $endpoint, $data = array() ) {
-		return $this->get_response( $endpoint, 'POST', $data );
+	protected function post( $endpoint, $data = array(), $header = array() ) {
+		return $this->get_response( $endpoint, 'POST', $data, $header );
+	}
+
+	protected function delete( $endpoint, $data = array(), $header = array() ) {
+		return $this->get_response( $endpoint, 'DELETE', $data, $header );
 	}
 
 	/**
-	 * @param $code
 	 * @param $body
 	 * @param $headers
+	 * @param $code
 	 *
 	 * @return \WP_Error
 	 */
-	protected function parse_error( $code, $body, $headers ) {
+	protected function parse_error( $body, $headers, $code ) {
 		$error = new \WP_Error();
+		$body  = is_array( $body ) ? $body : json_decode( $body, true );
 
-		if ( is_string( $body ) ) {
-			$response = json_decode( $body, true );
-
-			if ( ! empty( $response['response']['errors'] ) ) {
-				foreach( $response['response']['errors'] as $response_error ) {
-					$error->add( 'error', wp_kses_post( $response_error['code'] . ': ' . $response_error['message'] ) );
-				}
+		if ( ! empty( $body['response']['errors'] ) ) {
+			foreach ( $body['response']['errors'] as $response_error ) {
+				$error->add( 'error', wp_kses_post( $response_error['code'] . ': ' . $response_error['message'] ) );
 			}
+		} elseif ( ! empty( $body['response'] ) ) {
+			$error->add( 'error', wp_kses_post( $body['response']['code'] . ': ' . $body['response']['message'] ) );
+		}
 
-			if ( ! wc_gzd_shipment_wp_error_has_errors( $error ) ) {
-				$error->add( 'error', _x( 'There was an unkown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
-			}
-		} else {
-			$error->add( 'error', _x( 'There was an unkown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
+		if ( ! wc_gzd_shipment_wp_error_has_errors( $error ) ) {
+			$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
 		}
 
 		return $error;

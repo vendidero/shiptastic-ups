@@ -126,14 +126,6 @@ class Package {
 		}
 	}
 
-	public static function get_api_access_key() {
-		if ( self::is_debug_mode() && defined( 'WC_GZD_UPS_API_ACCESS_KEY' ) ) {
-			return WC_GZD_UPS_API_ACCESS_KEY;
-		} else {
-			return self::get_ups_shipping_provider()->get_setting( 'api_access_password' );
-		}
-	}
-
 	public static function get_account_number() {
 		if ( self::is_debug_mode() && defined( 'WC_GZD_UPS_API_ACCOUNT_NUMBER' ) ) {
 			return WC_GZD_UPS_API_ACCOUNT_NUMBER;

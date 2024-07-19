@@ -18,7 +18,7 @@ class Retoure extends Simple implements ShipmentReturnLabel {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'xxx'  => '',
+		'xxx' => '',
 	);
 
 	protected function get_hook_prefix() {
