@@ -6,9 +6,11 @@
  */
 namespace Vendidero\Germanized\UPS\ShippingProvider;
 
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\UPS\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
+use Vendidero\Germanized\UPS\ShippingProvider\Services\Notification;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -61,6 +63,9 @@ class UPS extends Auto {
 	public function hide_return_address() {
 		return false;
 	}
+	protected function register_services() {
+		$this->register_service( new Notification( $this ) );
+	}
 
 	public function get_api_username( $context = 'view' ) {
 		return $this->get_meta( 'api_username', true, $context );
@@ -85,6 +90,56 @@ class UPS extends Auto {
 		);
 
 		return $reference_types;
+	}
+
+	public function get_available_incoterms() {
+		return array(
+			'CFR' => _x( 'Cost and Freight', 'ups', 'woocommerce-germanized-ups' ),
+			'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'woocommerce-germanized-ups' ),
+			'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'woocommerce-germanized-ups' ),
+			'CPT' => _x( 'Carriage Paid To', 'ups', 'woocommerce-germanized-ups' ),
+			'DAF' => _x( 'Delivered at Frontier', 'ups', 'woocommerce-germanized-ups' ),
+			'DDP' => _x( 'Delivery Duty Paid', 'ups', 'woocommerce-germanized-ups' ),
+			'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'woocommerce-germanized-ups' ),
+			'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'woocommerce-germanized-ups' ),
+			'DES' => _x( 'Delivered Ex Ship', 'ups', 'woocommerce-germanized-ups' ),
+			'EXW' => _x( 'Ex Works', 'ups', 'woocommerce-germanized-ups' ),
+			'FAS' => _x( 'Free Alongside Ship', 'ups', 'woocommerce-germanized-ups' ),
+			'FCA' => _x( 'Free Carrier', 'ups', 'woocommerce-germanized-ups' ),
+			'FOB' => _x( 'Free On Board', 'ups', 'woocommerce-germanized-ups' ),
+		);
+	}
+
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return mixed
+	 */
+	protected function get_label_settings_by_zone( $configuration_set ) {
+		$settings = parent::get_label_settings_by_zone( $configuration_set );
+
+		if ( 'shipping_provider' === $configuration_set->get_setting_type() ) {
+			if ( 'int' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
+				$settings = array_merge(
+					$settings,
+					array(
+						array(
+							'title'    => _x( 'Default Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+							'type'     => 'select',
+							'default'  => 'DDP',
+							'id'       => 'label_default_incoterms',
+							'value'    => $this->get_setting( 'label_default_incoterms', 'DDP' ),
+							'desc'     => _x( 'Please select a default incoterms option.', 'ups', 'woocommerce-germanized-ups' ),
+							'desc_tip' => true,
+							'options'  => $this->get_available_incoterms(),
+							'class'    => 'wc-enhanced-select',
+						),
+					)
+				);
+			}
+		}
+
+		return $settings;
 	}
 
 	/**
@@ -250,7 +305,7 @@ class UPS extends Auto {
 			array(
 				'title'             => _x( 'Access Key', 'ups', 'woocommerce-germanized-ups' ),
 				'type'              => 'password',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To access the UPS API you\'ll need to <a href="%1$s">apply for an access key</a>.', 'gls', 'woocommerce-germanized-gls' ), '' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To access the UPS API you\'ll need to <a href="%1$s">apply for an access key</a>.', 'ups', 'woocommerce-germanized-ups' ), '' ) . '</div>',
 				'id'                => 'api_access_password',
 				'default'           => '',
 				'value'             => $this->get_setting( 'api_access_password', '' ),
@@ -301,6 +356,105 @@ class UPS extends Auto {
 		$general_settings = parent::get_general_settings();
 
 		return array_merge( $settings, $general_settings );
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return string
+	 */
+	protected function get_incoterms( $shipment ) {
+		$incoterms = $this->get_setting( 'label_default_incoterms', 'DDP' );
+
+		if ( ! empty( $shipment->get_incoterms() ) ) {
+			if ( in_array( $shipment->get_incoterms(), array_keys( $this->get_available_incoterms() ), true ) ) {
+				$incoterms = $shipment->get_incoterms();
+			}
+		}
+
+		return $incoterms;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_default_simple_label_props( $shipment, $defaults = array() ) {
+		$defaults = wp_parse_args(
+			$defaults,
+			array(
+				'product_id' => '',
+				'services'   => array(),
+			)
+		);
+
+		if ( $shipment->is_shipping_international() ) {
+			$defaults['incoterms'] = $this->get_incoterms( $shipment );
+		}
+
+		return $defaults;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_default_label_props( $shipment ) {
+		$defaults = parent::get_default_label_props( $shipment );
+
+		if ( 'return' === $shipment->get_type() ) {
+			$defaults = $this->get_default_return_label_props( $shipment, $defaults );
+		} else {
+			$defaults = $this->get_default_simple_label_props( $shipment, $defaults );
+		}
+
+		return $defaults;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_default_return_label_props( $shipment, $defaults = array() ) {
+		$defaults = wp_parse_args(
+			$defaults,
+			array(
+				'services' => array(),
+			)
+		);
+
+		return $defaults;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_simple_label_fields( $shipment ) {
+		$settings     = parent::get_simple_label_fields( $shipment );
+		$default_args = $this->get_default_label_props( $shipment );
+
+		if ( $shipment->is_shipping_international() ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'id'          => 'incoterms',
+						'label'       => _x( 'Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+						'description' => '',
+						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
+						'options'     => $this->get_available_incoterms(),
+						'type'        => 'select',
+					),
+				)
+			);
+		}
+
+		return $settings;
 	}
 
 	public function get_help_link() {

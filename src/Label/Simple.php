@@ -18,7 +18,8 @@ class Simple extends Label {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'xx' => '',
+		'incoterms'    => '',
+		'form_01_path' => '',
 	);
 
 	public function get_type() {
@@ -27,6 +28,28 @@ class Simple extends Label {
 
 	public function get_shipping_provider( $context = 'view' ) {
 		return 'ups';
+	}
+
+	public function get_additional_file_types() {
+		$file_types = parent::get_additional_file_types();
+
+		return array_merge( $file_types, array( 'form_01' ) );
+	}
+
+	public function get_incoterms( $context = 'view' ) {
+		return $this->get_prop( 'incoterms', $context );
+	}
+
+	public function get_form_01_path( $context = 'view' ) {
+		return $this->get_path( $context, 'form_01' );
+	}
+
+	public function set_form_01_path( $path ) {
+		$this->set_path( $path, 'form_01' );
+	}
+
+	public function set_incoterms( $incoterms ) {
+		$this->set_prop( 'incoterms', $incoterms );
 	}
 
 	/**
