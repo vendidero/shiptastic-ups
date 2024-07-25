@@ -57,43 +57,22 @@ class Package {
 		return ( self::is_ups_enabled() );
 	}
 
-	public static function get_domestic_products( $shipment = false ) {
-		$products = array(
-			'01' => _x( 'Next Day Air', 'ups', 'woocommerce-germanized-ups' ),
-			'02' => _x( '2nd Day Air', 'ups', 'woocommerce-germanized-ups' ),
-			// @see https://www.ups.com/us/en/supplychain/freight/ground.page
-			// '03' => _x( 'Ground', 'ups', 'woocommerce-germanized-ups' ),
-			'07' => _x( 'Express', 'ups', 'woocommerce-germanized-ups' ),
-			'08' => _x( 'Expedited', 'ups', 'woocommerce-germanized-ups' ),
-			'11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
-			'12' => _x( '3 Day Select', 'ups', 'woocommerce-germanized-ups' ),
-			'14' => _x( 'UPS Next Day Air Early', 'ups', 'woocommerce-germanized-ups' ),
-			'17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'woocommerce-germanized-ups' ),
-			'54' => _x( 'Express Plus', 'ups', 'woocommerce-germanized-ups' ),
-			'59' => _x( '2nd Day Air A.M.', 'ups', 'woocommerce-germanized-ups' ),
-			'65' => _x( 'UPS Saver', 'ups', 'woocommerce-germanized-ups' ),
-			// @see https://www.ups.com/at/de/shipping/international/services/worldwide-express-freight-midday.page
-			// '71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'woocommerce-germanized-ups' ),
-			'72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'woocommerce-germanized-ups' ),
-			'74' => _x( 'UPS Express 12:00', 'ups', 'woocommerce-germanized-ups' ),
-			'82' => _x( 'UPS Today Standard', 'ups', 'woocommerce-germanized-ups' ),
-			'83' => _x( 'UPS Today Dedicated Courier', 'ups', 'woocommerce-germanized-ups' ),
-			'84' => _x( 'UPS Today Intercity', 'ups', 'woocommerce-germanized-ups' ),
-			'85' => _x( 'UPS Today Express', 'ups', 'woocommerce-germanized-ups' ),
-			'86' => _x( 'UPS Today Express Saver', 'ups', 'woocommerce-germanized-ups' ),
-			// @see https://www.ups.com/at/de/shipping/international/services/worldwide-express-freight.page
-			// '96' => _x( 'UPS Worldwide Express Freight', 'ups', 'woocommerce-germanized-ups' ),
+	/**
+	 * @see https://www.ups.com/assets/resources/webcontent/en_GB/ReturnServicesShipment.pdf
+	 *
+	 * @return array
+	 */
+	public static function get_return_services() {
+		$services = array(
+			'2'  => _x( 'UPS Print and Mail (PNM)', 'ups', 'woocommerce-germanized-ups' ),
+			'3'  => _x( 'UPS Return Service 1-Attempt (RS1)', 'ups', 'woocommerce-germanized-ups' ),
+			'5'  => _x( 'UPS Return Service 3-Attempt (RS3)', 'ups', 'woocommerce-germanized-ups' ),
+			'8'  => _x( 'UPS Electronic Return Label (ERL)', 'ups', 'woocommerce-germanized-ups' ),
+			'9'  => _x( 'UPS Print Return Label (PRL)', 'ups', 'woocommerce-germanized-ups' ),
+			'10' => _x( 'UPS Exchange Print Return Label', 'ups', 'woocommerce-germanized-ups' ),
 		);
 
-		return $products;
-	}
-
-	public static function get_eu_products( $shipment = false ) {
-
-	}
-
-	public static function get_international_products( $shipment = false ) {
-
+		return $services;
 	}
 
 	public static function is_ups_enabled() {
@@ -187,7 +166,7 @@ class Package {
 
 	public static function install() {
 		self::on_shipments_init();
-		//Install::install();
+		Install::install();
 	}
 
 	public static function install_integration() {

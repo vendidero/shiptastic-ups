@@ -118,8 +118,25 @@ class UPS extends Auto {
 	protected function get_label_settings_by_zone( $configuration_set ) {
 		$settings = parent::get_label_settings_by_zone( $configuration_set );
 
+		if ( 'return' === $configuration_set->get_shipment_type() ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'title'   => _x( 'Return Service', 'ups', 'woocommerce-germanized-ups' ),
+						'type'    => 'select',
+						'default' => '9',
+						'value'   => $configuration_set->get_setting( 'return_service', '9', 'additional' ),
+						'id'      => $configuration_set->get_setting_id( 'return_service', 'additional' ),
+						'options' => Package::get_return_services(),
+						'class'   => 'wc-enhanced-select',
+					),
+				)
+			);
+		}
+
 		if ( 'shipping_provider' === $configuration_set->get_setting_type() ) {
-			if ( 'int' === $configuration_set->get_zone() && 'simple' === $configuration_set->get_shipment_type() ) {
+			if ( 'int' === $configuration_set->get_zone() ) {
 				$settings = array_merge(
 					$settings,
 					array(
@@ -376,11 +393,30 @@ class UPS extends Auto {
 	}
 
 	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_default_return_label_service( $shipment ) {
+		$service   = '9';
+		$available = Package::get_return_services();
+
+		if ( $config_set = $shipment->get_label_configuration_set() ) {
+			$service = $config_set->get_setting( 'return_service', $service, 'additional' );
+		}
+
+		if ( ! array_key_exists( $service, $available ) && ! empty( $available ) ) {
+			$service = '9';
+		}
+
+		return $service;
+	}
+
+	/**
 	 * @param Shipment $shipment
 	 *
 	 * @return array
 	 */
-	protected function get_default_simple_label_props( $shipment, $defaults = array() ) {
+	protected function get_default_label_props( $shipment ) {
+		$defaults = parent::get_default_label_props( $shipment );
 		$defaults = wp_parse_args(
 			$defaults,
 			array(
@@ -393,38 +429,9 @@ class UPS extends Auto {
 			$defaults['incoterms'] = $this->get_incoterms( $shipment );
 		}
 
-		return $defaults;
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_default_label_props( $shipment ) {
-		$defaults = parent::get_default_label_props( $shipment );
-
 		if ( 'return' === $shipment->get_type() ) {
-			$defaults = $this->get_default_return_label_props( $shipment, $defaults );
-		} else {
-			$defaults = $this->get_default_simple_label_props( $shipment, $defaults );
+			$defaults['return_service'] = $this->get_default_return_label_service( $shipment );
 		}
-
-		return $defaults;
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 *
-	 * @return array
-	 */
-	protected function get_default_return_label_props( $shipment, $defaults = array() ) {
-		$defaults = wp_parse_args(
-			$defaults,
-			array(
-				'services' => array(),
-			)
-		);
 
 		return $defaults;
 	}
@@ -437,6 +444,48 @@ class UPS extends Auto {
 	protected function get_simple_label_fields( $shipment ) {
 		$settings     = parent::get_simple_label_fields( $shipment );
 		$default_args = $this->get_default_label_props( $shipment );
+
+		if ( $shipment->is_shipping_international() ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'id'          => 'incoterms',
+						'label'       => _x( 'Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+						'description' => '',
+						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
+						'options'     => $this->get_available_incoterms(),
+						'type'        => 'select',
+					),
+				)
+			);
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_return_label_fields( $shipment ) {
+		$settings     = parent::get_return_label_fields( $shipment );
+		$default_args = $this->get_default_label_props( $shipment );
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'id'          => 'return_service',
+					'label'       => _x( 'Return Service', 'ups', 'woocommerce-germanized-ups' ),
+					'description' => '',
+					'value'       => isset( $default_args['return_service'] ) ? $default_args['return_service'] : '',
+					'options'     => Package::get_return_services(),
+					'type'        => 'select',
+				),
+			)
+		);
 
 		if ( $shipment->is_shipping_international() ) {
 			$settings = array_merge(

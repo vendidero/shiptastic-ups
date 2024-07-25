@@ -114,7 +114,7 @@ class Api {
 	 * @return string
 	 */
 	protected function get_dimension( $dimension, $shipment ) {
-		$label_unit = 'cm';
+		$label_unit = $shipment->get_dimension_unit();
 		$ups_unit   = strtolower( $this->get_dimension_unit( $shipment ) );
 
 		if ( $label_unit !== $ups_unit ) {
@@ -177,8 +177,6 @@ class Api {
 	public function get_label( $label ) {
 		$shipment              = $label->get_shipment();
 		$provider              = $shipment->get_shipping_provider_instance();
-		$is_return             = 'return' === $label->get_type();
-		$services              = $label->get_services();
 		$phone_is_required     = ! $shipment->is_shipping_domestic();
 		$email_is_required     = false;
 		$service_data          = array();
@@ -373,10 +371,10 @@ class Api {
 
 		$request = array(
 			'ShipmentRequest' => array(
-				'Request'  => array(
+				'Request'            => array(
 					'RequestOption' => 'novalidate',
 				),
-				'Shipment' => array(
+				'Shipment'           => array(
 					'Locale'                 => $locale,
 					'Description'            => $this->limit_length( $customs_data['export_type_description'], 50 ),
 					'Shipper'                => $shipper,
@@ -417,14 +415,34 @@ class Api {
 							'Weight'            => $this->get_weight( $label->get_weight(), $shipment ),
 						),
 					),
-					'LabelSpecification'     => array(
-						'LabelImageFormat' => array(
-							'Code' => 'GIF',
-						),
+				),
+				'LabelSpecification' => array(
+					'LabelImageFormat' => array(
+						'Code' => 'GIF',
 					),
 				),
 			),
 		);
+
+		if ( 'return' === $label->get_type() ) {
+			$request['ShipmentRequest']['Shipment']['ReturnService'] = array(
+				'Code' => $label->get_return_service(),
+			);
+
+			if ( 8 === absint( $label->get_return_service() ) ) {
+				$request['ShipmentRequest']['Shipment']['ShipmentServiceOptions']['LabelDelivery'] = array(
+					'EMail' => array(
+						'EMailAddress' => $shipment->get_sender_email(),
+					),
+				);
+
+				$request['ShipmentRequest']['Shipment']['LabelSpecification'] = array(
+					'LabelImageFormat' => array(
+						'Code' => '',
+					),
+				);
+			}
+		}
 
 		$request  = $this->clean_request( $request );
 		$response = $this->post( 'shipments/' . $this->get_api_version() . '/ship', apply_filters( 'woocommerce_gzd_ups_label_api_request', $request, $label ) );

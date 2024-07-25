@@ -18,7 +18,9 @@ class Retoure extends Simple implements ShipmentReturnLabel {
 	 * @var array
 	 */
 	protected $extra_data = array(
-		'xxx' => '',
+		'return_service' => '',
+		'incoterms'      => '',
+		'form_01_path'   => '',
 	);
 
 	protected function get_hook_prefix() {
@@ -27,5 +29,13 @@ class Retoure extends Simple implements ShipmentReturnLabel {
 
 	public function get_type() {
 		return 'return';
+	}
+
+	public function get_return_service( $context = 'view' ) {
+		return $this->get_prop( 'return_service', $context );
+	}
+
+	public function set_return_service( $service ) {
+		$this->set_prop( 'return_service', $service );
 	}
 }
