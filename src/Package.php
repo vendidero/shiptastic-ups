@@ -166,6 +166,11 @@ class Package {
 
 	public static function install() {
 		self::on_shipments_init();
+
+		if ( ! self::has_dependencies() ) {
+			return;
+		}
+
 		Install::install();
 	}
 
