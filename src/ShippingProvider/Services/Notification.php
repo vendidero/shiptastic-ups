@@ -1,9 +1,9 @@
 <?php
 
-namespace Vendidero\Germanized\UPS\ShippingProvider\Services;
+namespace Vendidero\Shiptastic\UPS\ShippingProvider\Services;
 
-use Vendidero\Germanized\Shipments\Shipment;
-use Vendidero\Germanized\Shipments\ShippingProvider\Service;
+use Vendidero\Shiptastic\Shipment;
+use Vendidero\Shiptastic\ShippingProvider\Service;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -12,7 +12,7 @@ class Notification extends Service {
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
 			'id'    => 'Notification',
-			'label' => _x( 'Customer Notification', 'ups', 'woocommerce-germanized-ups' ),
+			'label' => _x( 'Customer Notification', 'ups', 'ups-for-shiptastic' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
@@ -33,10 +33,10 @@ class Notification extends Service {
 
 		if ( false === $book_as_default ) {
 			if ( $order = $shipment->get_order() ) {
-				$supports_email_notification = wc_gzd_get_shipment_order( $order )->supports_third_party_email_transmission();
+				$supports_email_notification = wc_stc_get_shipment_order( $order )->supports_third_party_email_transmission();
 			}
 
-			$supports_email_notification = $supports_email_notification || apply_filters( 'woocommerce_gzd_ups_force_email_notification', false, $shipment );
+			$supports_email_notification = $supports_email_notification || apply_filters( 'shiptastic_ups_force_email_notification', false, $shipment );
 
 			if ( $supports_email_notification ) {
 				$book_as_default = true;
@@ -61,7 +61,7 @@ class Notification extends Service {
 				array(
 					'id'                => $this->get_label_field_id( 'email' ),
 					'data_type'         => 'email',
-					'label'             => _x( 'E-Mail', 'ups', 'woocommerce-germanized-ups' ),
+					'label'             => _x( 'E-Mail', 'ups', 'ups-for-shiptastic' ),
 					'placeholder'       => '',
 					'description'       => '',
 					'value'             => $value,

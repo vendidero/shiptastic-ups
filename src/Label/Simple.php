@@ -1,9 +1,9 @@
 <?php
 
-namespace Vendidero\Germanized\UPS\Label;
+namespace Vendidero\Shiptastic\UPS\Label;
 
-use Vendidero\Germanized\UPS\Package;
-use Vendidero\Germanized\Shipments\Labels\Label;
+use Vendidero\Shiptastic\UPS\Package;
+use Vendidero\Shiptastic\Labels\Label;
 
 defined( 'ABSPATH' ) || exit;
 

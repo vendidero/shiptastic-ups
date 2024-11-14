@@ -1,1 +1,1 @@
-# woocommerce-germanized-ups
+# UPS for Shiptastic

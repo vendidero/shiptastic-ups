@@ -1,14 +1,15 @@
 <?php
 
-namespace Vendidero\Germanized\UPS\Api;
+namespace Vendidero\Shiptastic\UPS\Api;
 
-use Vendidero\Germanized\Shipments\ImageToPDF;
-use Vendidero\Germanized\Shipments\PDFMerger;
-use Vendidero\Germanized\Shipments\ShipmentError;
-use Vendidero\Germanized\UPS\Label\Retoure;
-use Vendidero\Germanized\UPS\Label\Simple;
-use Vendidero\Germanized\UPS\Package;
-use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Shiptastic\ImageToPDF;
+use Vendidero\Shiptastic\PDFMerger;
+use Vendidero\Shiptastic\SecretBox;
+use Vendidero\Shiptastic\ShipmentError;
+use Vendidero\Shiptastic\UPS\Label\Retoure;
+use Vendidero\Shiptastic\UPS\Label\Simple;
+use Vendidero\Shiptastic\UPS\Package;
+use Vendidero\Shiptastic\Shipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -70,23 +71,23 @@ class Api {
 			}
 		}
 
-		return new \WP_Error( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'woocommerce-germanized-ups' ) );
+		return new \WP_Error( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'ups-for-shiptastic' ) );
 	}
 
-	protected function limit_length( $string, $max_length = -1 ) {
+	protected function limit_length( $str, $max_length = -1 ) {
 		if ( $max_length > 0 ) {
 			if ( function_exists( 'mb_strcut' ) ) {
 				/**
 				 * mb_substr does not cut to the exact point in case of umlauts etc.
 				 * e.g. returns 33 chars instead of 30 in case last latter is ü.
 				 */
-				$string = mb_strcut( $string, 0, $max_length );
+				$str = mb_strcut( $str, 0, $max_length );
 			} else {
-				$string = mb_substr( $string, 0, $max_length );
+				$str = mb_substr( $str, 0, $max_length );
 			}
 		}
 
-		return $string;
+		return $str;
 	}
 
 	/**
@@ -102,7 +103,7 @@ class Api {
 			$unit = 'IN';
 		}
 
-		return apply_filters( 'woocommerce_gzd_ups_shipment_dimension_unit', $unit, $shipment );
+		return apply_filters( 'shiptastic_ups_shipment_dimension_unit', $unit, $shipment );
 	}
 
 	/**
@@ -121,7 +122,7 @@ class Api {
 			$dimension = wc_get_dimension( $dimension, $ups_unit, $label_unit );
 		}
 
-		return apply_filters( 'woocommerce_gzd_ups_shipment_dimension', ceil( $dimension ), $shipment );
+		return apply_filters( 'shiptastic_ups_shipment_dimension', ceil( $dimension ), $shipment );
 	}
 
 	/**
@@ -137,7 +138,7 @@ class Api {
 			$unit = 'LBS';
 		}
 
-		return apply_filters( 'woocommerce_gzd_ups_shipment_weight_unit', $unit, $shipment );
+		return apply_filters( 'shiptastic_ups_shipment_weight_unit', $unit, $shipment );
 	}
 
 	/**
@@ -156,7 +157,7 @@ class Api {
 			$weight = wc_get_weight( $weight, $ups_unit, $label_unit );
 		}
 
-		return apply_filters( 'woocommerce_gzd_ups_shipment_dimension', ceil( (float) $weight * 2 ) / 2, $shipment );
+		return apply_filters( 'shiptastic_ups_shipment_dimension', ceil( (float) $weight * 2 ) / 2, $shipment );
 	}
 
 	protected function format_phone_number( $phone_number ) {
@@ -167,6 +168,17 @@ class Api {
 
 	protected function get_api_version() {
 		return 'v2403';
+	}
+
+	public function test_connection() {
+		$response       = $this->get( 'track/v1/details/12324' );
+		$has_connection = false;
+
+		if ( is_wp_error( $response ) && 401 !== $response->get_error_code() ) {
+			$has_connection = true;
+		}
+
+		return $has_connection;
 	}
 
 	/**
@@ -256,13 +268,13 @@ class Api {
 			$ship_to['ResidentialAddressIndicator'] = 'yes';
 		}
 
-		if ( $phone_is_required || ( apply_filters( 'woocommerce_gzd_ups_label_api_transmit_customer_phone', false, $label ) && $shipment->get_phone() ) ) {
+		if ( $phone_is_required || ( apply_filters( 'shiptastic_ups_label_api_transmit_customer_phone', false, $label ) && $shipment->get_phone() ) ) {
 			$ship_to['Phone'] = array(
 				'Number' => $this->limit_length( $this->format_phone_number( $shipment->get_phone() ), 15 ),
 			);
 		}
 
-		if ( $email_is_required || ( apply_filters( 'woocommerce_gzd_ups_force_email_notification', false, $shipment ) && $shipment->get_email() ) ) {
+		if ( $email_is_required || ( apply_filters( 'shiptastic_ups_force_email_notification', false, $shipment ) && $shipment->get_email() ) ) {
 			$ship_to['EMailAddress'] = $shipment->get_email();
 		}
 
@@ -296,12 +308,12 @@ class Api {
 			$default_reason = ! empty( $customs_data['export_reason'] ) ? strtoupper( $customs_data['export_reason'] ) : 'SALE';
 
 			$available_reasons_for_export = array(
-				'SALE'             => _x( 'Sale', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'GIFT'             => _x( 'Gift', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'SAMPLE'           => _x( 'Sample', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'RETURN'           => _x( 'Return', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'REPAIR'           => _x( 'Repair', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
-				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'woocommerce-germanized-ups' ),
+				'SALE'             => _x( 'Sale', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
+				'GIFT'             => _x( 'Gift', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
+				'SAMPLE'           => _x( 'Sample', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
+				'RETURN'           => _x( 'Return', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
+				'REPAIR'           => _x( 'Repair', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
+				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'ups-for-shiptastic' ),
 			);
 
 			$service_data['InternationalForms'] = array(
@@ -329,28 +341,28 @@ class Api {
 		}
 
 		$available_packaging_types = array(
-			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'03' => _x( 'Tube', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'04' => _x( 'PAK', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'21' => _x( 'UPS Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'24' => _x( 'UPS 25KG Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'25' => _x( 'UPS 10KG Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'30' => _x( 'Pallet', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'2a' => _x( 'Small Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'2b' => _x( 'Medium Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'2c' => _x( 'Large Express Box', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'56' => _x( 'Flats', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'57' => _x( 'Parcels', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'58' => _x( 'BPM', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'59' => _x( 'First Class', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'60' => _x( 'Priority', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'61' => _x( 'Machineables', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'62' => _x( 'Irregulars', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'63' => _x( 'Parcel Post', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'64' => _x( 'BPM Parcel', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'65' => _x( 'Media Mail', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'66' => _x( 'BPM Flat', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
-			'67' => _x( 'Standard Flat', 'ups-packaging-type', 'woocommerce-germanized-ups' ),
+			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'03' => _x( 'Tube', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'04' => _x( 'PAK', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'21' => _x( 'UPS Express Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'24' => _x( 'UPS 25KG Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'25' => _x( 'UPS 10KG Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'30' => _x( 'Pallet', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'2a' => _x( 'Small Express Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'2b' => _x( 'Medium Express Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'2c' => _x( 'Large Express Box', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'56' => _x( 'Flats', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'57' => _x( 'Parcels', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'58' => _x( 'BPM', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'59' => _x( 'First Class', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'60' => _x( 'Priority', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'61' => _x( 'Machineables', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'62' => _x( 'Irregulars', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'63' => _x( 'Parcel Post', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'64' => _x( 'BPM Parcel', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'65' => _x( 'Media Mail', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'66' => _x( 'BPM Flat', 'ups-packaging-type', 'ups-for-shiptastic' ),
+			'67' => _x( 'Standard Flat', 'ups-packaging-type', 'ups-for-shiptastic' ),
 		);
 
 		$default_packaging_type = '02';
@@ -445,14 +457,14 @@ class Api {
 		}
 
 		$request  = $this->clean_request( $request );
-		$response = $this->post( 'shipments/' . $this->get_api_version() . '/ship', apply_filters( 'woocommerce_gzd_ups_label_api_request', $request, $label ) );
+		$response = $this->post( 'shipments/' . $this->get_api_version() . '/ship', apply_filters( 'shiptastic_ups_label_api_request', $request, $label ) );
 
 		if ( ! is_wp_error( $response ) && isset( $response['body'] ) ) {
 			$error       = new ShipmentError();
 			$parcel_data = $response['body']['ShipmentResponse'];
 
 			if ( 1 !== absint( $parcel_data['Response']['ResponseStatus']['Code'] ) ) {
-				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
+				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'ups-for-shiptastic' ) );
 				return $error;
 			}
 
@@ -477,10 +489,10 @@ class Api {
 					if ( $path = $label->upload_label_file( $label_pdf ) ) {
 						$label->set_path( $path );
 					} else {
-						$error->add( 'upload', _x( 'Error while uploading UPS label.', 'ups', 'woocommerce-germanized-ups' ) );
+						$error->add( 'upload', _x( 'Error while uploading UPS label.', 'ups', 'ups-for-shiptastic' ) );
 					}
 				} catch ( \Exception $e ) {
-					$error->add( 'upload', sprintf( _x( 'Could not convert GIF to PDF file: %1$s', 'ups', 'woocommerce-germanized-ups' ), $e->getMessage() ) );
+					$error->add( 'upload', sprintf( _x( 'Could not convert GIF to PDF file: %1$s', 'ups', 'ups-for-shiptastic' ), $e->getMessage() ) );
 				}
 			}
 
@@ -517,7 +529,7 @@ class Api {
 				$label->save();
 			}
 
-			if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
+			if ( wc_stc_shipment_wp_error_has_errors( $error ) ) {
 				return $error;
 			}
 		}
@@ -525,20 +537,20 @@ class Api {
 		return is_wp_error( $response ) ? $response : true;
 	}
 
-	protected function clean_request( $array ) {
-		foreach ( $array as $k => $v ) {
+	protected function clean_request( $the_array ) {
+		foreach ( $the_array as $k => $v ) {
 			if ( is_array( $v ) ) {
-				$array[ $k ] = $this->clean_request( $v );
+				$the_array[ $k ] = $this->clean_request( $v );
 			} elseif ( ! is_string( $v ) ) {
-				$array[ $k ] = wp_json_encode( $v );
+				$the_array[ $k ] = wp_json_encode( $v );
 			}
 
 			if ( '' === $v ) {
-				unset( $array[ $k ] );
+				unset( $the_array[ $k ] );
 			}
 		}
 
-		return $array;
+		return $the_array;
 	}
 
 	protected function get_timeout( $request_type = 'GET' ) {
@@ -562,15 +574,13 @@ class Api {
 	}
 
 	protected function get_access_token() {
-		$access_token = get_transient( 'woocommerce_gzd_ups_access_token' );
+		$access_token = get_transient( 'shiptastic_ups_access_token' );
 
 		if ( ! empty( $access_token ) ) {
-			if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
-				$decrypted = \WC_GZD_Secret_Box_Helper::decrypt( $access_token );
+			$decrypted = SecretBox::decrypt( $access_token );
 
-				if ( ! is_wp_error( $decrypted ) ) {
-					$access_token = $decrypted;
-				}
+			if ( ! is_wp_error( $decrypted ) ) {
+				$access_token = $decrypted;
 			}
 
 			return $access_token;
@@ -599,15 +609,13 @@ class Api {
 			$expires_in   = absint( isset( $response['body']['expires_in'] ) ? $response['body']['expires_in'] : 3599 );
 
 			if ( ! empty( $access_token ) ) {
-				if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
-					$encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $access_token );
+				$encrypted = SecretBox::encrypt( $access_token );
 
-					if ( ! is_wp_error( $encrypted ) ) {
-						$access_token = $encrypted;
-					}
+				if ( ! is_wp_error( $encrypted ) ) {
+					$access_token = $encrypted;
 				}
 
-				set_transient( 'woocommerce_gzd_ups_access_token', $access_token, $expires_in );
+				set_transient( 'shiptastic_ups_access_token', $access_token, $expires_in );
 
 				return true;
 			}
@@ -616,6 +624,10 @@ class Api {
 		} else {
 			return $response;
 		}
+	}
+
+	public function disconnect() {
+		delete_transient( 'shiptastic_ups_access_token' );
 	}
 
 	/**
@@ -630,13 +642,11 @@ class Api {
 
 		if ( strstr( $endpoint, 'oauth' ) ) {
 			$is_auth_request = true;
-		} else {
-			if ( ! $this->has_auth() ) {
-				$auth_response = $this->auth();
+		} elseif ( ! $this->has_auth() ) {
+			$auth_response = $this->auth();
 
-				if ( is_wp_error( $auth_response ) ) {
-					return $auth_response;
-				}
+			if ( is_wp_error( $auth_response ) ) {
+				return $auth_response;
 			}
 		}
 
@@ -701,7 +711,7 @@ class Api {
 
 			if ( (int) $code >= 300 ) {
 				if ( in_array( (int) $code, array( 401, 403 ), true ) && ! $is_auth_request && ! isset( $body_args['is_retry'] ) ) {
-					delete_transient( 'woocommerce_gzd_ups_access_token' );
+					delete_transient( 'shiptastic_ups_access_token' );
 					$body_args['is_retry'] = true;
 
 					return $this->get_response( $endpoint, $type, $body_args, $header );
@@ -718,11 +728,15 @@ class Api {
 			);
 		}
 
-		return new \WP_Error( absint( $code ), sprintf( esc_html_x( 'Error while querying UPS endpoint %s', 'ups', 'woocommerce-germanized-ups' ), esc_url_raw( $endpoint ) ) );
+		return new \WP_Error( absint( $code ), sprintf( esc_html_x( 'Error while querying UPS endpoint %s', 'ups', 'ups-for-shiptastic' ), esc_url_raw( $endpoint ) ) );
 	}
 
 	protected function post( $endpoint, $data = array(), $header = array() ) {
 		return $this->get_response( $endpoint, 'POST', $data, $header );
+	}
+
+	protected function get( $endpoint, $data = array(), $header = array() ) {
+		return $this->get_response( $endpoint, 'GET', $data, $header );
 	}
 
 	protected function delete( $endpoint, $data = array(), $header = array() ) {
@@ -742,14 +756,14 @@ class Api {
 
 		if ( ! empty( $body['response']['errors'] ) ) {
 			foreach ( $body['response']['errors'] as $response_error ) {
-				$error->add( 'error', wp_kses_post( $response_error['code'] . ': ' . $response_error['message'] ) );
+				$error->add( $code, wp_kses_post( $response_error['code'] . ': ' . $response_error['message'] ) );
 			}
 		} elseif ( ! empty( $body['response'] ) ) {
-			$error->add( 'error', wp_kses_post( $body['response']['code'] . ': ' . $body['response']['message'] ) );
+			$error->add( $code, wp_kses_post( $body['response']['code'] . ': ' . $body['response']['message'] ) );
 		}
 
-		if ( ! wc_gzd_shipment_wp_error_has_errors( $error ) ) {
-			$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'woocommerce-germanized-ups' ) );
+		if ( ! wc_stc_shipment_wp_error_has_errors( $error ) ) {
+			$error->add( $code, _x( 'There was an unknown error calling the UPS API.', 'ups', 'ups-for-shiptastic' ) );
 		}
 
 		return $error;

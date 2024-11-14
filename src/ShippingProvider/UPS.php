@@ -4,20 +4,20 @@
  *
  * @package WooCommerce/Blocks
  */
-namespace Vendidero\Germanized\UPS\ShippingProvider;
+namespace Vendidero\Shiptastic\UPS\ShippingProvider;
 
-use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
-use Vendidero\Germanized\UPS\Package;
-use Vendidero\Germanized\Shipments\Shipment;
-use Vendidero\Germanized\Shipments\ShippingProvider\Auto;
-use Vendidero\Germanized\UPS\ShippingProvider\Services\Notification;
+use Vendidero\Shiptastic\Labels\ConfigurationSet;
+use Vendidero\Shiptastic\UPS\Package;
+use Vendidero\Shiptastic\Shipment;
+use Vendidero\Shiptastic\ShippingProvider\Auto;
+use Vendidero\Shiptastic\UPS\ShippingProvider\Services\Notification;
 
 defined( 'ABSPATH' ) || exit;
 
 class UPS extends Auto {
 
 	public function get_title( $context = 'view' ) {
-		return _x( 'UPS', 'ups', 'woocommerce-germanized-ups' );
+		return _x( 'UPS', 'ups', 'ups-for-shiptastic' );
 	}
 
 	public function get_name( $context = 'view' ) {
@@ -25,7 +25,7 @@ class UPS extends Auto {
 	}
 
 	public function get_description( $context = 'view' ) {
-		return _x( 'Create UPS labels and return labels conveniently.', 'ups', 'woocommerce-germanized-ups' );
+		return _x( 'Create UPS labels and return labels conveniently.', 'ups', 'ups-for-shiptastic' );
 	}
 
 	public function get_default_tracking_url_placeholder() {
@@ -38,9 +38,9 @@ class UPS extends Auto {
 
 	public function get_label_classname( $type ) {
 		if ( 'return' === $type ) {
-			return '\Vendidero\Germanized\UPS\Label\Retoure';
+			return '\Vendidero\Shiptastic\UPS\Label\Retoure';
 		} else {
-			return '\Vendidero\Germanized\UPS\Label\Simple';
+			return '\Vendidero\Shiptastic\UPS\Label\Simple';
 		}
 	}
 
@@ -78,12 +78,12 @@ class UPS extends Auto {
 	public function get_supported_label_reference_types( $shipment_type = 'simple' ) {
 		$reference_types = array(
 			'ref_1' => array(
-				'label'      => _x( 'Reference 1', 'ups', 'woocommerce-germanized-ups' ),
-				'default'    => 'return' === $shipment_type ? _x( 'Return #{shipment_number}, order {order_number}', 'ups', 'woocommerce-germanized-ups' ) : _x( '#{shipment_number}, order {order_number}', 'ups', 'woocommerce-germanized-ups' ),
+				'label'      => _x( 'Reference 1', 'ups', 'ups-for-shiptastic' ),
+				'default'    => 'return' === $shipment_type ? _x( 'Return #{shipment_number}, order {order_number}', 'ups', 'ups-for-shiptastic' ) : _x( '#{shipment_number}, order {order_number}', 'ups', 'ups-for-shiptastic' ),
 				'max_length' => 35,
 			),
 			'ref_2' => array(
-				'label'      => _x( 'Reference 2', 'ups', 'woocommerce-germanized-ups' ),
+				'label'      => _x( 'Reference 2', 'ups', 'ups-for-shiptastic' ),
 				'default'    => '',
 				'max_length' => 35,
 			),
@@ -94,19 +94,19 @@ class UPS extends Auto {
 
 	public function get_available_incoterms() {
 		return array(
-			'CFR' => _x( 'Cost and Freight', 'ups', 'woocommerce-germanized-ups' ),
-			'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'woocommerce-germanized-ups' ),
-			'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'woocommerce-germanized-ups' ),
-			'CPT' => _x( 'Carriage Paid To', 'ups', 'woocommerce-germanized-ups' ),
-			'DAF' => _x( 'Delivered at Frontier', 'ups', 'woocommerce-germanized-ups' ),
-			'DDP' => _x( 'Delivery Duty Paid', 'ups', 'woocommerce-germanized-ups' ),
-			'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'woocommerce-germanized-ups' ),
-			'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'woocommerce-germanized-ups' ),
-			'DES' => _x( 'Delivered Ex Ship', 'ups', 'woocommerce-germanized-ups' ),
-			'EXW' => _x( 'Ex Works', 'ups', 'woocommerce-germanized-ups' ),
-			'FAS' => _x( 'Free Alongside Ship', 'ups', 'woocommerce-germanized-ups' ),
-			'FCA' => _x( 'Free Carrier', 'ups', 'woocommerce-germanized-ups' ),
-			'FOB' => _x( 'Free On Board', 'ups', 'woocommerce-germanized-ups' ),
+			'CFR' => _x( 'Cost and Freight', 'ups', 'ups-for-shiptastic' ),
+			'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'ups-for-shiptastic' ),
+			'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'ups-for-shiptastic' ),
+			'CPT' => _x( 'Carriage Paid To', 'ups', 'ups-for-shiptastic' ),
+			'DAF' => _x( 'Delivered at Frontier', 'ups', 'ups-for-shiptastic' ),
+			'DDP' => _x( 'Delivery Duty Paid', 'ups', 'ups-for-shiptastic' ),
+			'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'ups-for-shiptastic' ),
+			'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'ups-for-shiptastic' ),
+			'DES' => _x( 'Delivered Ex Ship', 'ups', 'ups-for-shiptastic' ),
+			'EXW' => _x( 'Ex Works', 'ups', 'ups-for-shiptastic' ),
+			'FAS' => _x( 'Free Alongside Ship', 'ups', 'ups-for-shiptastic' ),
+			'FCA' => _x( 'Free Carrier', 'ups', 'ups-for-shiptastic' ),
+			'FOB' => _x( 'Free On Board', 'ups', 'ups-for-shiptastic' ),
 		);
 	}
 
@@ -123,7 +123,7 @@ class UPS extends Auto {
 				$settings,
 				array(
 					array(
-						'title'   => _x( 'Return Service', 'ups', 'woocommerce-germanized-ups' ),
+						'title'   => _x( 'Return Service', 'ups', 'ups-for-shiptastic' ),
 						'type'    => 'select',
 						'default' => '9',
 						'value'   => $configuration_set->get_setting( 'return_service', '9', 'additional' ),
@@ -141,12 +141,12 @@ class UPS extends Auto {
 					$settings,
 					array(
 						array(
-							'title'    => _x( 'Default Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+							'title'    => _x( 'Default Incoterms', 'ups', 'ups-for-shiptastic' ),
 							'type'     => 'select',
 							'default'  => 'DDP',
 							'id'       => 'label_default_incoterms',
 							'value'    => $this->get_setting( 'label_default_incoterms', 'DDP' ),
-							'desc'     => _x( 'Please select a default incoterms option.', 'ups', 'woocommerce-germanized-ups' ),
+							'desc'     => _x( 'Please select a default incoterms option.', 'ups', 'ups-for-shiptastic' ),
 							'desc_tip' => true,
 							'options'  => $this->get_available_incoterms(),
 							'class'    => 'wc-enhanced-select',
@@ -165,106 +165,106 @@ class UPS extends Auto {
 	 * @return void
 	 */
 	protected function register_products() {
-		$base_country  = \Vendidero\Germanized\Shipments\Package::get_base_country();
-		$is_eu         = \Vendidero\Germanized\Shipments\Package::country_belongs_to_eu_customs_area( $base_country );
+		$base_country  = \Vendidero\Shiptastic\Package::get_base_country();
+		$is_eu         = \Vendidero\Shiptastic\Package::country_belongs_to_eu_customs_area( $base_country );
 		$general       = array();
 		$international = array();
 		$domestic      = array();
 
 		$base_available = array(
-			'ups_96' => _x( 'UPS Worldwide Express Freight', 'ups', 'woocommerce-germanized-ups' ),
-			'ups_71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'woocommerce-germanized-ups' ),
-			'ups_17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'woocommerce-germanized-ups' ),
-			'ups_72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'woocommerce-germanized-ups' ),
+			'ups_96' => _x( 'UPS Worldwide Express Freight', 'ups', 'ups-for-shiptastic' ),
+			'ups_71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'ups-for-shiptastic' ),
+			'ups_17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'ups-for-shiptastic' ),
+			'ups_72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'ups-for-shiptastic' ),
 		);
 
 		if ( 'US' === $base_country ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$international = array(
-				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'ups-for-shiptastic' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$domestic = array(
-				'ups_02' => _x( 'UPS 2nd Day Air', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_59' => _x( 'UPS 2nd Day Air A.M.', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_12' => _x( 'UPS 3 Day Select', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_03' => _x( 'UPS Ground', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_01' => _x( 'UPS Next Day Air', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_14' => _x( 'UPS Next Day Air Early', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_13' => _x( 'UPS Next Day Air Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_02' => _x( 'UPS 2nd Day Air', 'ups', 'ups-for-shiptastic' ),
+				'ups_59' => _x( 'UPS 2nd Day Air A.M.', 'ups', 'ups-for-shiptastic' ),
+				'ups_12' => _x( 'UPS 3 Day Select', 'ups', 'ups-for-shiptastic' ),
+				'ups_03' => _x( 'UPS Ground', 'ups', 'ups-for-shiptastic' ),
+				'ups_01' => _x( 'UPS Next Day Air', 'ups', 'ups-for-shiptastic' ),
+				'ups_14' => _x( 'UPS Next Day Air Early', 'ups', 'ups-for-shiptastic' ),
+				'ups_13' => _x( 'UPS Next Day Air Saver', 'ups', 'ups-for-shiptastic' ),
 			);
 		} elseif ( 'CA' === $base_country ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$domestic = array(
-				'ups_02' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_13' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_01' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_14' => _x( 'UPS Express Early', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_02' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
+				'ups_13' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
+				'ups_01' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
+				'ups_14' => _x( 'UPS Express Early', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$international = array(
-				'ups_65' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_65' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'ups-for-shiptastic' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$this->register_product(
 				'ups_12',
 				array(
-					'label'     => _x( 'UPS 3 Day Select', 'ups', 'woocommerce-germanized-ups' ),
+					'label'     => _x( 'UPS 3 Day Select', 'ups', 'ups-for-shiptastic' ),
 					'countries' => array( 'CA', 'US' ),
 				)
 			);
 		} elseif ( $is_eu ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_08' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
+				'ups_08' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			$domestic = array(
-				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
 			);
 
 			if ( 'PL' === $base_country ) {
 				$general = array(
-					'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_08' => _x( 'UPS Expedited', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_54' => _x( 'UPS Express Plus', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_65' => _x( 'UPS Express Saver', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
+					'ups_08' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
+					'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
+					'ups_54' => _x( 'UPS Express Plus', 'ups', 'ups-for-shiptastic' ),
+					'ups_65' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
 				);
 
 				$domestic = array(
-					'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_83' => _x( 'UPS Today Dedicated Courrier', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_85' => _x( 'UPS Today Express', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_86' => _x( 'UPS Today Express Saver', 'ups', 'woocommerce-germanized-ups' ),
-					'ups_82' => _x( 'UPS Today Standard', 'ups', 'woocommerce-germanized-ups' ),
+					'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
+					'ups_83' => _x( 'UPS Today Dedicated Courrier', 'ups', 'ups-for-shiptastic' ),
+					'ups_85' => _x( 'UPS Today Express', 'ups', 'ups-for-shiptastic' ),
+					'ups_86' => _x( 'UPS Today Express Saver', 'ups', 'ups-for-shiptastic' ),
+					'ups_82' => _x( 'UPS Today Standard', 'ups', 'ups-for-shiptastic' ),
 				);
 			} elseif ( 'DE' === $base_country ) {
-				$domestic['ups_74'] = _x( 'UPS Express 12:00', 'ups', 'woocommerce-germanized-ups' );
+				$domestic['ups_74'] = _x( 'UPS Express 12:00', 'ups', 'ups-for-shiptastic' );
 			}
 		} else {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_07' => _x( 'UPS Express', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'woocommerce-germanized-ups' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'woocommerce-germanized-ups' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
 			);
 		}
 
@@ -320,22 +320,11 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title'             => _x( 'Access Key', 'ups', 'woocommerce-germanized-ups' ),
-				'type'              => 'password',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'To access the UPS API you\'ll need to <a href="%1$s">apply for an access key</a>.', 'ups', 'woocommerce-germanized-ups' ), '' ) . '</div>',
-				'id'                => 'api_access_password',
-				'default'           => '',
-				'value'             => $this->get_setting( 'api_access_password', '' ),
-				'custom_attributes' => array(
-					'autocomplete' => 'new-password',
-				),
-			),
-
-			array(
-				'title'             => _x( 'Username', 'ups', 'woocommerce-germanized-ups' ),
+				'title'             => _x( 'Client ID', 'ups', 'ups-for-shiptastic' ),
 				'type'              => 'text',
 				'id'                => 'api_username',
 				'default'           => '',
+				'desc'              => '<div class="wc-shiptastic-additional-desc">' . sprintf( _x( 'You\'ll need to register an app within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API. <a href="%s">Learn more</a> in our docs.', 'ups', 'ups-for-shiptastic' ), '' ) . '</div>',
 				'value'             => $this->get_setting( 'api_username', '' ),
 				'custom_attributes' => array(
 					'autocomplete' => 'new-password',
@@ -343,7 +332,7 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title'             => _x( 'Password', 'ups', 'woocommerce-germanized-ups' ),
+				'title'             => _x( 'Client Secret', 'ups', 'ups-for-shiptastic' ),
 				'type'              => 'password',
 				'desc'              => '',
 				'id'                => 'api_password',
@@ -351,6 +340,14 @@ class UPS extends Auto {
 				'custom_attributes' => array(
 					'autocomplete' => 'new-password',
 				),
+			),
+
+			array(
+				'title' => _x( 'Account number', 'ups', 'ups-for-shiptastic' ),
+				'type'  => 'text',
+				'desc'  => '',
+				'id'    => 'api_account_number',
+				'value' => $this->get_setting( 'api_account_number', '' ),
 			),
 
 			array(
@@ -363,7 +360,7 @@ class UPS extends Auto {
 			$settings,
 			array(
 				array(
-					'title' => _x( 'Tracking', 'ups', 'woocommerce-germanized-ups' ),
+					'title' => _x( 'Tracking', 'ups', 'ups-for-shiptastic' ),
 					'type'  => 'title',
 					'id'    => 'tracking_options',
 				),
@@ -393,7 +390,7 @@ class UPS extends Auto {
 	}
 
 	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param \Vendidero\Shiptastic\Shipment $shipment
 	 */
 	public function get_default_return_label_service( $shipment ) {
 		$service   = '9';
@@ -437,7 +434,7 @@ class UPS extends Auto {
 	}
 
 	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param \Vendidero\Shiptastic\Shipment $shipment
 	 *
 	 * @return array
 	 */
@@ -451,7 +448,7 @@ class UPS extends Auto {
 				array(
 					array(
 						'id'          => 'incoterms',
-						'label'       => _x( 'Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+						'label'       => _x( 'Incoterms', 'ups', 'ups-for-shiptastic' ),
 						'description' => '',
 						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
 						'options'     => $this->get_available_incoterms(),
@@ -465,7 +462,7 @@ class UPS extends Auto {
 	}
 
 	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param \Vendidero\Shiptastic\Shipment $shipment
 	 *
 	 * @return array
 	 */
@@ -478,7 +475,7 @@ class UPS extends Auto {
 			array(
 				array(
 					'id'          => 'return_service',
-					'label'       => _x( 'Return Service', 'ups', 'woocommerce-germanized-ups' ),
+					'label'       => _x( 'Return Service', 'ups', 'ups-for-shiptastic' ),
 					'description' => '',
 					'value'       => isset( $default_args['return_service'] ) ? $default_args['return_service'] : '',
 					'options'     => Package::get_return_services(),
@@ -493,7 +490,7 @@ class UPS extends Auto {
 				array(
 					array(
 						'id'          => 'incoterms',
-						'label'       => _x( 'Incoterms', 'ups', 'woocommerce-germanized-ups' ),
+						'label'       => _x( 'Incoterms', 'ups', 'ups-for-shiptastic' ),
 						'description' => '',
 						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
 						'options'     => $this->get_available_incoterms(),
@@ -512,5 +509,15 @@ class UPS extends Auto {
 
 	public function get_signup_link() {
 		return '';
+	}
+
+	public function test_connection() {
+		$username = Package::get_api_username();
+
+		if ( empty( $username ) ) {
+			return null;
+		}
+
+		return Package::get_api()->test_connection();
 	}
 }

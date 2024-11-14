@@ -1,9 +1,9 @@
 <?php
 
-namespace Vendidero\Germanized\UPS\Label;
+namespace Vendidero\Shiptastic\UPS\Label;
 
-use Vendidero\Germanized\UPS\Package;
-use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
+use Vendidero\Shiptastic\UPS\Package;
+use Vendidero\Shiptastic\Interfaces\ShipmentReturnLabel;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,7 +24,7 @@ class Retoure extends Simple implements ShipmentReturnLabel {
 	);
 
 	protected function get_hook_prefix() {
-		return 'woocommerce_gzd_ups_return_label_get_';
+		return 'shiptastic_ups_return_label_get_';
 	}
 
 	public function get_type() {

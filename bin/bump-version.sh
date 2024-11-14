@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAIN_PLUGIN_FILE="woocommerce-germanized-ups.php"
+MAIN_PLUGIN_FILE="ups-for-shiptastic.php"
 PACKAGE_JSON_FILE=package.json
 PACKAGE_FILE=src/Package.php
 COMPOSER_FILE=composer.json

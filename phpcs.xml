@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="WordPress Coding Standards">
-    <description>Germanized Pro Package dev PHP_CodeSniffer ruleset.</description>
+    <description>Shiptastic dev PHP_CodeSniffer ruleset.</description>
 
     <file>.</file>
 
@@ -38,7 +38,7 @@
 
     <rule ref="WordPress.WP.I18n">
         <properties>
-            <property name="text_domain" type="array" value="woocommerce-germanized-ups" />
+            <property name="text_domain" type="array" value="ups-for-shiptastic" />
         </properties>
     </rule>
 
@@ -49,22 +49,6 @@
     <rule ref="WordPress.Files.FileName.InvalidClassFileName">
         <exclude-pattern>tests/</exclude-pattern>
         <exclude-pattern>src/</exclude-pattern>
-    </rule>
-
-    <rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
-        <exclude-pattern>*</exclude-pattern>
-    </rule>
-
-    <rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
-        <exclude-pattern>*</exclude-pattern>
-    </rule>
-
-    <rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
-        <exclude-pattern>*</exclude-pattern>
-    </rule>
-
-    <rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
-        <exclude-pattern>*</exclude-pattern>
     </rule>
 
     <rule ref="Squiz.Classes.ClassFileName">
@@ -120,7 +104,28 @@
         <exclude-pattern>*</exclude-pattern>
     </rule>
 
-    <rule ref="WordPress.CodeAnalysis.AssignmentInCondition">
+    <rule ref="Generic.CodeAnalysis.AssignmentInCondition.Found">
         <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed">
+        <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.Found">
+        <exclude-pattern>*</exclude-pattern>
+    </rule>
+
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="manage_woocommerce" />
+                <element value="pay_for_order" />
+                <element value="view_order" />
+                <element value="edit_shop_orders" />
+                <element value="delete_shop_orders" />
+                <element value="edit_others_shop_orders" />
+            </property>
+        </properties>
     </rule>
 </ruleset>
