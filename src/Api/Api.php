@@ -2,9 +2,10 @@
 
 namespace Vendidero\Shiptastic\UPS\Api;
 
+use Vendidero\Shiptastic\API\Response;
+use Vendidero\Shiptastic\API\REST;
 use Vendidero\Shiptastic\ImageToPDF;
 use Vendidero\Shiptastic\PDFMerger;
-use Vendidero\Shiptastic\SecretBox;
 use Vendidero\Shiptastic\ShipmentError;
 use Vendidero\Shiptastic\UPS\Label\Retoure;
 use Vendidero\Shiptastic\UPS\Label\Simple;
@@ -13,10 +14,8 @@ use Vendidero\Shiptastic\Shipment;
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * UPS RESTful API
- */
-class Api {
+class Api extends REST {
+
 	const DEV_ENVIRONMENT  = 0;
 	const PROD_ENVIRONMENT = 1;
 
@@ -58,36 +57,24 @@ class Api {
 	/**
 	 * @param Simple|Retoure $label
 	 *
-	 * @return \WP_Error|true
+	 * @return ShipmentError|true
 	 */
 	public function cancel_label( $label ) {
 		if ( $label->get_number() ) {
 			$response = $this->delete( 'shipments/' . $this->get_api_version() . '/void/' . $label->get_number() );
 
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			} elseif ( isset( $response['body']['VoidShipmentResponse']['Response']['ResponseStatus']['Code'] ) && 1 === absint( $response['body']['VoidShipmentResponse']['Response']['ResponseStatus']['Code'] ) ) {
+			if ( $response->is_error() ) {
+				return $response->get_error();
+			} elseif ( isset( $response->get_body()['VoidShipmentResponse']['Response']['ResponseStatus']['Code'] ) && 1 === absint( $response->get_body()['VoidShipmentResponse']['Response']['ResponseStatus']['Code'] ) ) {
 				return true;
 			}
 		}
 
-		return new \WP_Error( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'ups-for-shiptastic' ) );
+		return new ShipmentError( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'ups-for-shiptastic' ) );
 	}
 
 	protected function limit_length( $str, $max_length = -1 ) {
-		if ( $max_length > 0 ) {
-			if ( function_exists( 'mb_strcut' ) ) {
-				/**
-				 * mb_substr does not cut to the exact point in case of umlauts etc.
-				 * e.g. returns 33 chars instead of 30 in case last latter is ü.
-				 */
-				$str = mb_strcut( $str, 0, $max_length );
-			} else {
-				$str = mb_substr( $str, 0, $max_length );
-			}
-		}
-
-		return $str;
+		return wc_shiptastic_substring( $str, 0, $max_length );
 	}
 
 	/**
@@ -174,7 +161,7 @@ class Api {
 		$response       = $this->get( 'track/v1/details/12324' );
 		$has_connection = false;
 
-		if ( is_wp_error( $response ) && 401 !== $response->get_error_code() ) {
+		if ( $response->is_error() && 401 !== $response->get_code() ) {
 			$has_connection = true;
 		}
 
@@ -184,7 +171,7 @@ class Api {
 	/**
 	 * @param Simple|Retoure $label
 	 *
-	 * @return \WP_Error|true
+	 * @return ShipmentError|true
 	 */
 	public function get_label( $label ) {
 		$shipment              = $label->get_shipment();
@@ -459,12 +446,14 @@ class Api {
 		$request  = $this->clean_request( $request );
 		$response = $this->post( 'shipments/' . $this->get_api_version() . '/ship', apply_filters( 'shiptastic_ups_label_api_request', $request, $label ) );
 
-		if ( ! is_wp_error( $response ) && isset( $response['body'] ) ) {
+		if ( ! $response->is_error() ) {
 			$error       = new ShipmentError();
-			$parcel_data = $response['body']['ShipmentResponse'];
+			$body        = $response->get_body();
+			$parcel_data = $body['ShipmentResponse'];
 
 			if ( 1 !== absint( $parcel_data['Response']['ResponseStatus']['Code'] ) ) {
 				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'ups-for-shiptastic' ) );
+
 				return $error;
 			}
 
@@ -529,12 +518,14 @@ class Api {
 				$label->save();
 			}
 
-			if ( wc_stc_shipment_wp_error_has_errors( $error ) ) {
+			if ( $error->has_errors() ) {
 				return $error;
 			}
-		}
 
-		return is_wp_error( $response ) ? $response : true;
+			return true;
+		} else {
+			return $response->get_error();
+		}
 	}
 
 	protected function clean_request( $the_array ) {
@@ -557,202 +548,32 @@ class Api {
 		return 'GET' === $request_type ? 30 : 100;
 	}
 
-	protected function get_header() {
-		$headers = array(
-			'Content-Type'   => 'application/json',
-			'Accept'         => 'application/json',
-			'User-Agent'     => 'Germanized/' . Package::get_version(),
-			'transId'        => uniqid(),
-			'transactionSrc' => 'Germanized/' . Package::get_version(),
+	protected function get_headers( $headers = array() ) {
+		$headers = wp_parse_args(
+			$headers,
+			array(
+				'Content-Type'   => $this->get_content_type(),
+				'Accept'         => 'application/json',
+				'User-Agent'     => 'Shiptastic/' . \Vendidero\Shiptastic\Package::get_version(),
+				'transId'        => uniqid(),
+				'transactionSrc' => 'Shiptastic/' . Package::get_version(),
+			)
 		);
+
+		$headers = array_replace_recursive( $headers, $this->get_auth()->get_headers() );
 
 		return $headers;
 	}
 
-	protected function has_auth() {
-		return $this->get_access_token() ? true : false;
-	}
-
-	protected function get_access_token() {
-		$access_token = get_transient( 'shiptastic_ups_access_token' );
-
-		if ( ! empty( $access_token ) ) {
-			$decrypted = SecretBox::decrypt( $access_token );
-
-			if ( ! is_wp_error( $decrypted ) ) {
-				$access_token = $decrypted;
-			}
-
-			return $access_token;
-		} else {
-			return false;
-		}
-	}
-
-	protected function auth() {
-		$api_url = self::is_sandbox() ? 'https://wwwcie.ups.com/security/v1/oauth/token' : 'https://onlinetools.ups.com/security/v1/oauth/token';
-
-		$response = $this->post(
-			$api_url,
-			array(
-				'grant_type' => 'client_credentials',
-			),
-			array(
-				'x-merchant-id' => Package::get_account_number(),
-				'Content-Type'  => 'application/x-www-form-urlencoded',
-				'Authorization' => 'Basic ' . base64_encode( Package::get_api_username() . ':' . Package::get_api_password() ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			)
-		);
-
-		if ( ! is_wp_error( $response ) ) {
-			$access_token = isset( $response['body']['access_token'] ) ? $response['body']['access_token'] : '';
-			$expires_in   = absint( isset( $response['body']['expires_in'] ) ? $response['body']['expires_in'] : 3599 );
-
-			if ( ! empty( $access_token ) ) {
-				$encrypted = SecretBox::encrypt( $access_token );
-
-				if ( ! is_wp_error( $encrypted ) ) {
-					$access_token = $encrypted;
-				}
-
-				set_transient( 'shiptastic_ups_access_token', $access_token, $expires_in );
-
-				return true;
-			}
-
-			return new \WP_Error( 'auth', 'Error while authenticating with UPS' );
-		} else {
-			return $response;
-		}
-	}
-
-	public function disconnect() {
-		delete_transient( 'shiptastic_ups_access_token' );
-	}
-
 	/**
-	 * @param $endpoint
-	 * @param $type
-	 * @param $body_args
+	 * @param Response $response
 	 *
-	 * @return array|\WP_Error
+	 * @return Response
 	 */
-	protected function get_response( $endpoint, $type = 'GET', $body_args = array(), $header = array() ) {
-		$is_auth_request = false;
-
-		if ( strstr( $endpoint, 'oauth' ) ) {
-			$is_auth_request = true;
-		} elseif ( ! $this->has_auth() ) {
-			$auth_response = $this->auth();
-
-			if ( is_wp_error( $auth_response ) ) {
-				return $auth_response;
-			}
-		}
-
-		$url          = wc_is_valid_url( $endpoint ) ? $endpoint : untrailingslashit( trailingslashit( self::is_sandbox() ? 'https://wwwcie.ups.com/api' : 'https://onlinetools.ups.com/api' ) . $endpoint );
-		$headers      = array_replace_recursive( $this->get_header(), $header );
-		$content_type = isset( $headers['Content-Type'] ) ? $headers['Content-Type'] : 'application/json';
-		$code         = 400;
-
-		if ( ! $is_auth_request && $this->has_auth() ) {
-			$headers['Authorization'] = 'Bearer ' . $this->get_access_token();
-		}
-
-		if ( 'GET' === $type ) {
-			$response = wp_remote_get(
-				esc_url_raw( $url ),
-				array(
-					'headers' => $headers,
-					'timeout' => $this->get_timeout( $type ),
-				)
-			);
-		} elseif ( 'POST' === $type ) {
-			if ( 'application/x-www-form-urlencoded' === $content_type ) {
-				$body = http_build_query( $body_args );
-			} else {
-				$body = wp_json_encode( $body_args, JSON_PRETTY_PRINT );
-			}
-
-			$response = wp_remote_post(
-				esc_url_raw( $url ),
-				array(
-					'headers' => $headers,
-					'timeout' => $this->get_timeout( $type ),
-					'body'    => $body,
-				)
-			);
-		} elseif ( 'DELETE' === $type ) {
-			if ( 'application/x-www-form-urlencoded' === $content_type ) {
-				$body = http_build_query( $body_args );
-			} else {
-				$body = wp_json_encode( $body_args, JSON_PRETTY_PRINT );
-			}
-
-			$response = wp_remote_request(
-				esc_url_raw( $url ),
-				array(
-					'method'  => 'DELETE',
-					'headers' => $headers,
-					'timeout' => $this->get_timeout( $type ),
-					'body'    => $body,
-				)
-			);
-		}
-
-		if ( false !== $response ) {
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			}
-
-			$code    = wp_remote_retrieve_response_code( $response );
-			$body    = wp_remote_retrieve_body( $response );
-			$headers = wp_remote_retrieve_headers( $response );
-
-			if ( (int) $code >= 300 ) {
-				if ( in_array( (int) $code, array( 401, 403 ), true ) && ! $is_auth_request && ! isset( $body_args['is_retry'] ) ) {
-					delete_transient( 'shiptastic_ups_access_token' );
-					$body_args['is_retry'] = true;
-
-					return $this->get_response( $endpoint, $type, $body_args, $header );
-				}
-
-				return $this->parse_error( $body, $headers, $code );
-			}
-
-			return array(
-				'code'    => (int) $code,
-				'raw'     => $body,
-				'headers' => $headers,
-				'body'    => json_decode( $body, true ),
-			);
-		}
-
-		return new \WP_Error( absint( $code ), sprintf( esc_html_x( 'Error while querying UPS endpoint %s', 'ups', 'ups-for-shiptastic' ), esc_url_raw( $endpoint ) ) );
-	}
-
-	protected function post( $endpoint, $data = array(), $header = array() ) {
-		return $this->get_response( $endpoint, 'POST', $data, $header );
-	}
-
-	protected function get( $endpoint, $data = array(), $header = array() ) {
-		return $this->get_response( $endpoint, 'GET', $data, $header );
-	}
-
-	protected function delete( $endpoint, $data = array(), $header = array() ) {
-		return $this->get_response( $endpoint, 'DELETE', $data, $header );
-	}
-
-	/**
-	 * @param $body
-	 * @param $headers
-	 * @param $code
-	 *
-	 * @return \WP_Error
-	 */
-	protected function parse_error( $body, $headers, $code ) {
-		$error = new \WP_Error();
-		$body  = is_array( $body ) ? $body : json_decode( $body, true );
+	protected function parse_error( $response ) {
+		$error = new ShipmentError();
+		$body  = $response->get_body();
+		$code  = $response->get_code();
 
 		if ( ! empty( $body['response']['errors'] ) ) {
 			foreach ( $body['response']['errors'] as $response_error ) {
@@ -766,9 +587,19 @@ class Api {
 			$error->add( $code, _x( 'There was an unknown error calling the UPS API.', 'ups', 'ups-for-shiptastic' ) );
 		}
 
-		return $error;
+		$response->set_error( $error );
+
+		return $response;
 	}
 
 	/** Disabled Api constructor. Use Api::instance() as singleton */
 	protected function __construct() {}
+
+	public function get_url() {
+		return self::is_sandbox() ? 'https://wwwcie.ups.com/api' : 'https://onlinetools.ups.com/api';
+	}
+
+	protected function get_auth_instance() {
+		return new Auth( $this );
+	}
 }
