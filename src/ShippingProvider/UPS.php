@@ -320,29 +320,6 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title'             => _x( 'Client ID', 'ups', 'ups-for-shiptastic' ),
-				'type'              => 'text',
-				'id'                => 'api_username',
-				'default'           => '',
-				'desc'              => '<div class="wc-shiptastic-additional-desc">' . sprintf( _x( 'You\'ll need to register an app within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API. <a href="%s">Learn more</a> in our docs.', 'ups', 'ups-for-shiptastic' ), '' ) . '</div>',
-				'value'             => $this->get_setting( 'api_username', '' ),
-				'custom_attributes' => array(
-					'autocomplete' => 'new-password',
-				),
-			),
-
-			array(
-				'title'             => _x( 'Client Secret', 'ups', 'ups-for-shiptastic' ),
-				'type'              => 'password',
-				'desc'              => '',
-				'id'                => 'api_password',
-				'value'             => $this->get_setting( 'api_password', '' ),
-				'custom_attributes' => array(
-					'autocomplete' => 'new-password',
-				),
-			),
-
-			array(
 				'title' => _x( 'Account number', 'ups', 'ups-for-shiptastic' ),
 				'type'  => 'text',
 				'desc'  => '',
@@ -351,9 +328,64 @@ class UPS extends Auto {
 			),
 
 			array(
-				'type' => 'sectionend',
-				'id'   => 'ups_api_options',
+				'title' => _x( 'Sandbox mode', 'ups', 'ups-for-shiptastic' ),
+				'desc'  => _x( 'Activate Sandbox mode for testing purposes.', 'ups', 'ups-for-shiptastic' ),
+				'id'    => 'sandbox_mode',
+				'value' => wc_bool_to_string( $this->get_setting( 'sandbox_mode', 'no' ) ),
+				'type'  => 'shiptastic_toggle',
 			),
+		);
+
+		if ( ! Package::use_custom_api() ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'title'    => _x( 'OAuth', 'ups', 'ups-for-shiptastic' ),
+						'type'     => 'shiptastic_oauth',
+						'desc'     => '',
+						'api_type' => 'ups',
+					),
+				)
+			);
+		} else {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'title'             => _x( 'Client ID', 'ups', 'ups-for-shiptastic' ),
+						'type'              => 'text',
+						'id'                => 'api_username',
+						'default'           => '',
+						'desc'              => '<div class="wc-shiptastic-additional-desc">' . sprintf( _x( 'You\'ll need to <a href="%s">register an app</a> within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API.', 'ups', 'ups-for-shiptastic' ), 'https://developer.ups.com/' ) . '</div>',
+						'value'             => $this->get_setting( 'api_username', '' ),
+						'custom_attributes' => array(
+							'autocomplete' => 'new-password',
+						),
+					),
+
+					array(
+						'title'             => _x( 'Client Secret', 'ups', 'ups-for-shiptastic' ),
+						'type'              => 'password',
+						'desc'              => '',
+						'id'                => 'api_password',
+						'value'             => $this->get_setting( 'api_password', '' ),
+						'custom_attributes' => array(
+							'autocomplete' => 'new-password',
+						),
+					),
+				)
+			);
+		}
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'type' => 'sectionend',
+					'id'   => 'ups_api_options',
+				),
+			)
 		);
 
 		$settings = array_merge(
@@ -512,12 +544,6 @@ class UPS extends Auto {
 	}
 
 	public function test_connection() {
-		$username = Package::get_api_username();
-
-		if ( empty( $username ) ) {
-			return null;
-		}
-
 		return Package::get_api()->test_connection();
 	}
 }

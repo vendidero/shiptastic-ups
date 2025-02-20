@@ -79,24 +79,32 @@ class Package {
 		return Helper::instance()->is_shipping_provider_activated( 'ups' );
 	}
 
-	public static function get_api_username() {
-		if ( self::is_debug_mode() && defined( 'WC_STC_UPS_API_USERNAME' ) ) {
-			return WC_STC_UPS_API_USERNAME;
-		} else {
-			return self::get_ups_shipping_provider()->get_api_username();
-		}
+	public static function use_custom_api() {
+		return defined( 'WC_STC_UPS_ENABLE_CUSTOM_API' ) ? WC_STC_UPS_ENABLE_CUSTOM_API : false;
 	}
 
-	public static function get_api_password() {
-		if ( self::is_debug_mode() && defined( 'WC_STC_UPS_API_PASSWORD' ) ) {
-			return WC_STC_UPS_API_PASSWORD;
-		} else {
-			return self::get_ups_shipping_provider()->get_setting( 'api_password' );
+	public static function get_api_client_id() {
+		$client_id = self::get_ups_shipping_provider()->get_setting( 'api_username' );
+
+		if ( defined( 'WC_STC_UPS_API_CLIENT_ID' ) ) {
+			$client_id = WC_STC_UPS_API_CLIENT_ID;
 		}
+
+		return $client_id;
+	}
+
+	public static function get_api_client_secret() {
+		$client_secret = self::get_ups_shipping_provider()->get_setting( 'api_password' );
+
+		if ( defined( 'WC_STC_UPS_API_CLIENT_SECRET' ) ) {
+			$client_secret = WC_STC_UPS_API_CLIENT_SECRET;
+		}
+
+		return $client_secret;
 	}
 
 	public static function get_account_number() {
-		if ( self::is_debug_mode() && defined( 'WC_STC_UPS_API_ACCOUNT_NUMBER' ) ) {
+		if ( self::is_sandbox_mode() && defined( 'WC_STC_UPS_API_ACCOUNT_NUMBER' ) ) {
 			return WC_STC_UPS_API_ACCOUNT_NUMBER;
 		} else {
 			return self::get_ups_shipping_provider()->get_setting( 'api_account_number' );
@@ -104,18 +112,10 @@ class Package {
 	}
 
 	/**
-	 * @return Api
+	 * @return false|\Vendidero\Shiptastic\Interfaces\Api|Api
 	 */
 	public static function get_api() {
-		$api = \Vendidero\Shiptastic\UPS\Api\Api::instance();
-
-		if ( self::is_debug_mode() ) {
-			$api::dev();
-		} else {
-			$api::prod();
-		}
-
-		return $api;
+		return \Vendidero\Shiptastic\API\Helper::get_api( 'ups', self::is_sandbox_mode() );
 	}
 
 	private static function includes() {
@@ -124,6 +124,12 @@ class Package {
 	public static function init_hooks() {
 		// Filter templates
 		add_filter( 'shiptastic_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+		add_filter(
+			'shiptastic_register_api_instance_ups',
+			function () {
+				return new Api();
+			}
+		);
 	}
 
 	public static function filter_templates( $path, $template_name ) {
@@ -202,14 +208,18 @@ class Package {
 		return self::get_url() . '/assets';
 	}
 
-	public static function is_debug_mode() {
-		$is_debug_mode = ( defined( 'WC_STC_UPS_DEBUG' ) && WC_STC_UPS_DEBUG );
+	public static function is_sandbox_mode() {
+		$is_sandbox = ( defined( 'WC_STC_UPS_ENABLE_SANDBOX' ) && WC_STC_UPS_ENABLE_SANDBOX );
 
-		return $is_debug_mode;
+		if ( ! $is_sandbox && ( $provider = self::get_ups_shipping_provider() ) ) {
+			$is_sandbox = $provider->is_sandbox();
+		}
+
+		return $is_sandbox;
 	}
 
 	public static function enable_logging() {
-		return ( defined( 'WC_STC_UPS_LOG_ENABLE' ) && WC_STC_UPS_LOG_ENABLE ) || self::is_debug_mode();
+		return ( defined( 'WC_STC_UPS_LOG_ENABLE' ) && WC_STC_UPS_LOG_ENABLE ) || self::is_sandbox_mode();
 	}
 
 	private static function define_constant( $name, $value ) {

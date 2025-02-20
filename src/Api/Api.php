@@ -2,6 +2,7 @@
 
 namespace Vendidero\Shiptastic\UPS\Api;
 
+use Vendidero\Shiptastic\API\Auth\OAuthGateway;
 use Vendidero\Shiptastic\API\Response;
 use Vendidero\Shiptastic\API\REST;
 use Vendidero\Shiptastic\ImageToPDF;
@@ -16,43 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 class Api extends REST {
 
-	const DEV_ENVIRONMENT  = 0;
-	const PROD_ENVIRONMENT = 1;
-
-	/** @var Api */
-	private static $instance;
-
-	/** @var int */
-	protected static $environment = self::DEV_ENVIRONMENT;
-
-	/**
-	 * @return Api
-	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
-			self::$instance = new static();
-		}
-
-		return self::$instance;
-	}
-
-	/**
-	 * Set API environment to development version
-	 */
-	public static function dev() {
-		self::$environment = self::DEV_ENVIRONMENT;
-	}
-
-	/**
-	 * Set API environment to production version
-	 */
-	public static function prod() {
-		self::$environment = self::PROD_ENVIRONMENT;
-	}
-
-	public static function is_sandbox() {
-		return self::DEV_ENVIRONMENT === self::$environment;
-	}
+	protected $is_sandbox = false;
 
 	/**
 	 * @param Simple|Retoure $label
@@ -158,11 +123,14 @@ class Api extends REST {
 	}
 
 	public function test_connection() {
-		$response       = $this->get( 'track/v1/details/12324' );
 		$has_connection = false;
 
-		if ( $response->is_error() && 401 !== $response->get_code() ) {
-			$has_connection = true;
+		if ( $this->get_auth_api()->is_connected() ) {
+			$response = $this->get( 'track/v1/details/12324' );
+
+			if ( $response->is_error() && 401 !== $response->get_code() ) {
+				$has_connection = true;
+			}
 		}
 
 		return $has_connection;
@@ -560,7 +528,7 @@ class Api extends REST {
 			)
 		);
 
-		$headers = array_replace_recursive( $headers, $this->get_auth()->get_headers() );
+		$headers = array_replace_recursive( $headers, $this->get_auth_api()->get_headers() );
 
 		return $headers;
 	}
@@ -592,14 +560,23 @@ class Api extends REST {
 		return $response;
 	}
 
-	/** Disabled Api constructor. Use Api::instance() as singleton */
-	protected function __construct() {}
-
 	public function get_url() {
-		return self::is_sandbox() ? 'https://wwwcie.ups.com/api' : 'https://onlinetools.ups.com/api';
+		return $this->is_sandbox() ? 'https://wwwcie.ups.com/api' : 'https://onlinetools.ups.com/api';
 	}
 
 	protected function get_auth_instance() {
-		return new Auth( $this );
+		if ( Package::use_custom_api() ) {
+			return new Auth( $this );
+		} else {
+			return new OAuthGateway( $this );
+		}
+	}
+
+	public function get_name() {
+		return 'ups';
+	}
+
+	public function get_title() {
+		return _x( 'UPS', 'shiptastic', 'ups-for-shiptastic' );
 	}
 }

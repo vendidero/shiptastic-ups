@@ -11,24 +11,19 @@ defined( 'ABSPATH' ) || exit;
 
 class Auth extends OAuth {
 
-	protected function get_access_token() {
-		$access_token = get_transient( 'shiptastic_ups_access_token' );
-
-		if ( ! empty( $access_token ) ) {
-			$decrypted = SecretBox::decrypt( $access_token );
-
-			if ( ! is_wp_error( $decrypted ) ) {
-				$access_token = $decrypted;
-			}
-
-			return $access_token;
-		} else {
-			return false;
-		}
-	}
-
 	public function get_url() {
 		return $this->get_api()->is_sandbox() ? 'https://wwwcie.ups.com/security/v1/oauth' : 'https://onlinetools.ups.com/security/v1/oauth';
+	}
+
+	public function is_connected() {
+		$is_connected = parent::is_connected();
+		$username     = Package::get_api_client_id();
+
+		if ( empty( $username ) ) {
+			$is_connected = false;
+		}
+
+		return $is_connected;
 	}
 
 	public function auth() {
@@ -40,38 +35,20 @@ class Auth extends OAuth {
 			array(
 				'x-merchant-id' => Package::get_account_number(),
 				'Content-Type'  => 'application/x-www-form-urlencoded',
-				'Authorization' => 'Basic ' . base64_encode( Package::get_api_username() . ':' . Package::get_api_password() ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				'Authorization' => 'Basic ' . base64_encode( Package::get_api_client_id() . ':' . Package::get_api_client_secret() ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			)
 		);
 
 		if ( ! $response->is_error() ) {
-			$body         = $response->get_body();
-			$access_token = isset( $body['access_token'] ) ? $body['access_token'] : '';
-			$expires_in   = absint( isset( $body['expires_in'] ) ? $body['expires_in'] : 3599 );
+			$body = $response->get_body();
 
-			if ( ! empty( $access_token ) ) {
-				$encrypted = SecretBox::encrypt( $access_token );
-
-				if ( ! is_wp_error( $encrypted ) ) {
-					$access_token = $encrypted;
-				}
-
-				set_transient( 'shiptastic_ups_access_token', $access_token, $expires_in );
-
-				return true;
+			if ( ! empty( $body['access_token'] ) ) {
+				$this->update_access_and_refresh_token( $body );
+			} else {
+				$response->set_error( new ShipmentError( 'auth', 'Error while authenticating with UPS' ) );
 			}
-
-			$response->set_error( new ShipmentError( 'auth', 'Error while authenticating with UPS' ) );
-
-			return $response;
-		} else {
-			delete_transient( 'shiptastic_ups_access_token' );
-
-			return $response;
 		}
-	}
 
-	public function revoke() {
-		delete_transient( 'shiptastic_ups_access_token' );
+		return $response;
 	}
 }
