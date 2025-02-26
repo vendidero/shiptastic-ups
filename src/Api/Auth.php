@@ -16,14 +16,13 @@ class Auth extends OAuth {
 	}
 
 	public function is_connected() {
-		$is_connected = parent::is_connected();
-		$username     = Package::get_api_client_id();
+		$username = Package::get_api_client_id();
 
 		if ( empty( $username ) ) {
-			$is_connected = false;
+			return false;
 		}
 
-		return $is_connected;
+		return true;
 	}
 
 	public function auth() {
