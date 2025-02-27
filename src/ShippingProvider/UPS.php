@@ -536,7 +536,7 @@ class UPS extends Auto {
 	}
 
 	public function get_help_link() {
-		return 'https://vendidero.de/dokument/ups-integration-einrichten';
+		return 'https://vendidero.de/doc/woocommerce-germanized/ups-integration-einrichten';
 	}
 
 	public function get_signup_link() {

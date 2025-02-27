@@ -123,7 +123,7 @@ class Package {
 
 	public static function init_hooks() {
 		// Filter templates
-		add_filter( 'shiptastic_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+		add_filter( 'shiptastic_default_template_path', array( __CLASS__, 'filter_templates' ), 10, 2 );
 		add_filter(
 			'shiptastic_register_api_instance_ups',
 			function () {

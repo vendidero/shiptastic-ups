@@ -496,22 +496,6 @@ class Api extends REST {
 		}
 	}
 
-	protected function clean_request( $the_array ) {
-		foreach ( $the_array as $k => $v ) {
-			if ( is_array( $v ) ) {
-				$the_array[ $k ] = $this->clean_request( $v );
-			} elseif ( ! is_string( $v ) ) {
-				$the_array[ $k ] = wp_json_encode( $v );
-			}
-
-			if ( '' === $v ) {
-				unset( $the_array[ $k ] );
-			}
-		}
-
-		return $the_array;
-	}
-
 	protected function get_timeout( $request_type = 'GET' ) {
 		return 'GET' === $request_type ? 30 : 100;
 	}
