@@ -14,6 +14,8 @@ class Install {
 
 		if ( ! is_null( $current_version ) ) {
 			self::update( $current_version );
+		} elseif ( $ups = Package::get_ups_shipping_provider() ) {
+			$ups->activate(); // Activate on new install
 		}
 
 		/**

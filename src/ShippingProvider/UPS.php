@@ -33,7 +33,7 @@ class UPS extends Auto {
 	}
 
 	public function is_sandbox() {
-		return true;
+		return wc_string_to_bool( $this->get_setting( 'sandbox_mode', 'no' ) );
 	}
 
 	public function get_label_classname( $type ) {

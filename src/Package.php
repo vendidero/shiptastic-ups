@@ -26,21 +26,19 @@ class Package {
 	 */
 	public static function init() {
 		if ( self::has_dependencies() ) {
-			// Add shipping provider
 			add_filter( 'woocommerce_shiptastic_shipping_provider_class_names', array( __CLASS__, 'add_shipping_provider_class_name' ), 20, 1 );
-		}
 
-		if ( ! did_action( 'woocommerce_shiptastic_init' ) ) {
-			add_action( 'woocommerce_shiptastic_init', array( __CLASS__, 'on_init' ), 20 );
-		} else {
-			self::on_init();
+			if ( ! did_action( 'woocommerce_shiptastic_init' ) ) {
+				add_action( 'woocommerce_shiptastic_init', array( __CLASS__, 'on_init' ), 20 );
+			} else {
+				self::on_init();
+			}
 		}
 	}
 
 	public static function on_init() {
-		if ( ! self::has_dependencies() ) {
-			return;
-		}
+		add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
+		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		self::includes();
 
@@ -49,8 +47,28 @@ class Package {
 		}
 	}
 
+	public static function load_plugin_textdomain() {
+		if ( function_exists( 'determine_locale' ) ) {
+			$locale = determine_locale();
+		} else {
+			// @todo Remove when start supporting WP 5.0 or later.
+			$locale = is_admin() ? get_user_locale() : get_locale();
+		}
+
+		$locale = apply_filters( 'plugin_locale', $locale, 'dhl-for-shiptastic' );
+
+		load_textdomain( 'ups-for-shiptastic', trailingslashit( WP_LANG_DIR ) . 'ups-for-shiptastic/ups-for-shiptastic-' . $locale . '.mo' );
+		load_plugin_textdomain( 'ups-for-shiptastic', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
+	}
+
+	public static function check_version() {
+		if ( self::has_dependencies() && ! defined( 'IFRAME_REQUEST' ) && ( get_option( 'woocommerce_shiptastic_ups_version' ) !== self::get_version() ) ) {
+			Install::install();
+		}
+	}
+
 	public static function has_dependencies() {
-		return ( class_exists( 'WooCommerce' ) && class_exists( '\Vendidero\Shiptastic\Package' ) && apply_filters( 'woocommerce_shiptastic_ups_enabled', true ) );
+		return class_exists( '\Vendidero\Shiptastic\Package' );
 	}
 
 	public static function is_enabled() {
@@ -160,13 +178,11 @@ class Package {
 	}
 
 	public static function install() {
-		self::on_init();
+		if ( self::has_dependencies() ) {
+			self::init();
 
-		if ( ! self::has_dependencies() ) {
-			return;
+			Install::install();
 		}
-
-		Install::install();
 	}
 
 	public static function install_integration() {
