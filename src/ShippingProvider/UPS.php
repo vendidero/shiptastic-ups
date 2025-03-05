@@ -7,6 +7,8 @@
 namespace Vendidero\Shiptastic\UPS\ShippingProvider;
 
 use Vendidero\Shiptastic\Labels\ConfigurationSet;
+use Vendidero\Shiptastic\PickupDelivery;
+use Vendidero\Shiptastic\ShippingProvider\PickupLocation;
 use Vendidero\Shiptastic\UPS\Package;
 use Vendidero\Shiptastic\Shipment;
 use Vendidero\Shiptastic\ShippingProvider\Auto;
@@ -545,5 +547,104 @@ class UPS extends Auto {
 
 	public function test_connection() {
 		return Package::get_api()->test_connection();
+	}
+
+	public function supports_pickup_locations() {
+		return true;
+	}
+
+	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
+		if ( ! $this->enable_pickup_location_delivery() ) {
+			return false;
+		}
+
+		$query_args = $this->parse_pickup_location_query_args( $query_args );
+		$address    = $this->parse_pickup_location_address_args( $address );
+		$excluded   = PickupDelivery::get_excluded_gateways();
+		$max_weight = wc_get_weight( 20, wc_stc_get_packaging_dimension_unit(), 'kg' );
+
+		$supports = ! in_array( $query_args['payment_gateway'], $excluded, true ) && $query_args['max_weight'] <= $max_weight;
+
+		return $supports;
+	}
+
+	protected function fetch_pickup_location( $location_code, $address ) {
+		$location_code = $this->parse_pickup_location_code( $location_code );
+		$address       = $this->parse_pickup_location_address_args( $address );
+
+		if ( empty( $location_code ) ) {
+			return false;
+		}
+
+		try {
+			$result          = Package::get_api()->find_access_point_by_id( $location_code, $address );
+			$pickup_location = $this->get_pickup_location_from_api_response( $result );
+		} catch ( \Exception $e ) {
+			$pickup_location = null;
+
+			if ( 404 === $e->getCode() ) {
+				$pickup_location = false;
+			}
+		}
+
+		return $pickup_location;
+	}
+
+	protected function parse_pickup_location_code( $location_code ) {
+		$keyword_id = preg_replace( '/[^a-zA-Z0-9]/', '', $location_code );
+
+		return $keyword_id;
+	}
+
+	protected function get_pickup_location_from_api_response( $location ) {
+		$address = wp_parse_args(
+			$location['AddressKeyFormat'],
+			array(
+				'ConsigneeName'      => '',
+				'CountryCode'        => '',
+				'PostcodePrimaryLow' => '',
+				'AddressLine'        => '',
+				'PoliticalDivision2' => '',
+				'PoliticalDivision1' => '',
+			)
+		);
+
+		try {
+			return new PickupLocation(
+				array(
+					'code'                     => isset( $location['AccessPointInformation'] ) ? $location['AccessPointInformation']['PublicAccessPointID'] : $location['LocationID'],
+					'label'                    => $location['AddressKeyFormat']['ConsigneeName'],
+					'latitude'                 => $location['Geocode']['Latitude'],
+					'longitude'                => $location['Geocode']['Longitude'],
+					'supports_customer_number' => false,
+					'address'                  => array(
+						'company'   => $address['ConsigneeName'],
+						'address_1' => $address['AddressLine'],
+						'postcode'  => $address['PostcodePrimaryLow'],
+						'city'      => $address['PoliticalDivision2'],
+						'state'     => $address['PoliticalDivision1'],
+						'country'   => $address['CountryCode'],
+					),
+					'address_replacement_map'  => array(),
+				)
+			);
+		} catch ( \Exception $e ) {
+			Package::log( $e, 'error' );
+
+			return false;
+		}
+	}
+
+	protected function fetch_pickup_locations( $address, $query_args = array() ) {
+		$locations     = array();
+		$location_data = Package::get_api()->find_access_points( $address, $query_args['limit'] );
+
+		foreach ( $location_data as $location ) {
+			if ( $pickup_location = $this->get_pickup_location_from_api_response( $location ) ) {
+				$locations[] = $pickup_location;
+			}
+		}
+
+		return $locations;
 	}
 }

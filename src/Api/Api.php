@@ -17,8 +17,6 @@ defined( 'ABSPATH' ) || exit;
 
 class Api extends REST {
 
-	protected $is_sandbox = false;
-
 	/**
 	 * @param Simple|Retoure $label
 	 *
@@ -136,6 +134,210 @@ class Api extends REST {
 		return $has_connection;
 	}
 
+	public function find_access_points( $address, $limit = 10 ) {
+		$address = wp_parse_args(
+			$address,
+			array(
+				'address_1' => '',
+				'city'      => '',
+				'postcode'  => '',
+				'country'   => '',
+				'state'     => '',
+			)
+		);
+
+		$locale      = \Vendidero\Shiptastic\Package::get_locale_info( $address['country'] );
+		$measurement = 'en_US' === $locale['default_locale'] ? 'MI' : 'KM';
+
+		$request = array(
+			'LocatorRequest' => array(
+				'Request'           => array(
+					'RequestAction' => 'Locator',
+				),
+				'OriginAddress'     => array(
+					'AddressKeyFormat' => array(
+						'AddressLine'        => $address['address_1'],
+						'PoliticalDivision2' => $address['city'],
+						'PostcodePrimaryLow' => $address['postcode'],
+						'CountryCode'        => $address['country'],
+					),
+					'MaximumListSize'  => $limit,
+				),
+				'Translate'         => array(
+					'Locale' => $locale['default_locale'],
+				),
+				'UnitOfMeasurement' => array(
+					'Code' => $measurement,
+				),
+			),
+		);
+
+		$response  = $this->post( 'locations/' . $this->get_api_version() . '/search/availabilities/64', $request );
+		$locations = array();
+
+		if ( ! $response->is_error() ) {
+			$body      = $response->get_body();
+			$locations = wc_clean( isset( $body['LocatorResponse']['SearchResults']['DropLocation'] ) ? (array) $body['LocatorResponse']['SearchResults']['DropLocation'] : array() );
+		}
+
+		return $locations;
+	}
+
+	public function find_access_point_by_id( $id, $address ) {
+		$address = wp_parse_args(
+			$address,
+			array(
+				'city'     => '',
+				'postcode' => '',
+				'country'  => '',
+			)
+		);
+		$locale  = \Vendidero\Shiptastic\Package::get_locale_info();
+
+		$request = array(
+			'LocatorRequest' => array(
+				'Request'                => array(
+					'RequestAction' => 'Locator',
+				),
+				'OriginAddress'          => array(
+					'AddressKeyFormat' => array(
+						'PoliticalDivision2' => $address['city'],
+						'PostcodePrimaryLow' => $address['postcode'],
+						'CountryCode'        => $address['country'],
+					),
+				),
+				'Translate'              => array(
+					'Locale' => $locale['default_locale'],
+				),
+				'LocationSearchCriteria' => array(
+					'AccessPointSearch' => array(
+						'PublicAccessPointID' => $id,
+					),
+				),
+			),
+		);
+
+		$response = $this->post( 'locations/' . $this->get_api_version() . '/search/availabilities/64', $request );
+		$location = false;
+
+		if ( ! $response->is_error() ) {
+			$body      = $response->get_body();
+			$locations = wc_clean( isset( $body['LocatorResponse']['SearchResults']['DropLocation'] ) ? (array) $body['LocatorResponse']['SearchResults']['DropLocation'] : array() );
+
+			if ( ! empty( $locations ) ) {
+				$location = $locations[0];
+			}
+		}
+
+		return $location;
+	}
+
+	protected function get_language_details( $country ) {
+		$locale_info    = \Vendidero\Shiptastic\Package::get_locale_info( $country );
+		$default_locale = strtolower( $locale_info['default_locale'] );
+		$language_code  = 'eng';
+
+		$locale_parts = explode( '_', $default_locale );
+		$locale_map   = array(
+			'en' => 'eng',
+			'es' => 'spa',
+			'it' => 'ita',
+			'fr' => 'fra',
+			'de' => 'deu',
+			'pt' => 'por',
+			'nl' => 'nld',
+			'da' => 'dan',
+			'fi' => 'fin',
+			'sv' => 'swe',
+			'nb' => 'nor',
+			'hu' => 'hun',
+			'cs' => 'ces',
+			'ro' => 'ron',
+			'tr' => 'tur',
+			'ru' => 'rus',
+			'cn' => 'zho',
+		);
+
+		if ( array_key_exists( $locale_parts[0], $locale_map ) ) {
+			$language_code = $locale_map[ $locale_parts[0] ];
+		}
+
+		if ( 'eng' === $language_code ) {
+			$dialect_code = 'gb';
+
+			if ( in_array( $locale_parts[1], array( 'us', 'ca' ), true ) ) {
+				$dialect_code = $locale_parts[1];
+			}
+		} elseif ( 'zho' === $language_code ) {
+			$dialect_code = 'tw';
+		} else {
+			$dialect_code = '97';
+		}
+
+		return array(
+			'language' => $language_code,
+			'dialect'  => $dialect_code,
+		);
+	}
+
+	protected function get_locale( $country ) {
+		$locale_info       = \Vendidero\Shiptastic\Package::get_locale_info( $country );
+		$locale            = strtolower( $locale_info['default_locale'] );
+		$supported_locales = array(
+			'bg_BG',
+			'cs_CZ',
+			'da_DK',
+			'de_DE',
+			'el_GR',
+			'en_CA',
+			'en_GB',
+			'en_US',
+			'es_AR',
+			'es_ES',
+			'es_MX',
+			'es_PR',
+			'et_EE',
+			'fi_FI',
+			'fr_CA',
+			'fr_FR',
+			'he_IL',
+			'hu_HU',
+			'it_IT',
+			'ja_JP',
+			'ko_KR',
+			'lt_LT',
+			'lv_LV',
+			'nl_NL',
+			'no_NO',
+			'pl_PL',
+			'pt_BR',
+			'pt_PT',
+			'ro_RO',
+			'ru_RU',
+			'sk_SK',
+			'sv_SE',
+			'th_TH',
+			'tr_TR',
+			'vi_VN',
+			'zh_CN',
+			'zh_HK',
+			'zh_TW',
+		);
+
+		if ( ! in_array( $locale, $supported_locales, true ) ) {
+			$parts        = explode( '_', $locale );
+			$plain_locale = $parts[0] . '_' . $parts[0];
+
+			if ( in_array( $plain_locale, $supported_locales, true ) ) {
+				$locale = $plain_locale;
+			} else {
+				$locale = 'en_GB';
+			}
+		}
+
+		return $locale;
+	}
+
 	/**
 	 * @param Simple|Retoure $label
 	 *
@@ -148,19 +350,25 @@ class Api extends REST {
 		$email_is_required     = false;
 		$service_data          = array();
 		$shipper_address_lines = array();
+		$locale                = $this->get_locale( $shipment->get_country() );
+		$language_details      = $this->get_language_details( $shipment->get_country() );
 
 		foreach ( $label->get_services() as $service ) {
 			$service_name = ucfirst( $service );
 
 			switch ( $service ) {
 				case 'Notification':
-					$request_services[ $service_name ] = array();
-					$notification_codes                = array( 6, 7, 8 );
+					$service_data[ $service_name ] = array();
+					$notification_codes            = array( 6, 7, 8 );
 
 					foreach ( $notification_codes as $notification_code ) {
-						$request_services[ $service_name ][] = array(
+						$service_data[ $service_name ][] = array(
 							'NotificationCode' => $notification_code,
 							'EMail'            => array( 'EMailAddress' => array( $label->get_service_prop( 'customerAlertService', 'email' ) ) ),
+							'Locale'           => array(
+								'Language' => strtoupper( $language_details['language'] ),
+								'Dialect'  => strtoupper( $language_details['dialect'] ),
+							),
 						);
 					}
 					break;
@@ -289,12 +497,6 @@ class Api extends REST {
 			);
 		}
 
-		$locale = '';
-
-		if ( in_array( $shipment->get_country(), array( 'DE', 'AT' ), true ) ) {
-			$locale = 'de_DE';
-		}
-
 		$available_packaging_types = array(
 			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'ups-for-shiptastic' ),
 			'03' => _x( 'Tube', 'ups-packaging-type', 'ups-for-shiptastic' ),
@@ -390,6 +592,53 @@ class Api extends REST {
 				),
 			),
 		);
+
+		if ( $shipment->has_pickup_location() ) {
+			if ( $location = $shipment->get_pickup_location() ) {
+				$notifications = isset( $request['ShipmentRequest']['Shipment']['ShipmentServiceOptions']['Notification'] ) ? $request['ShipmentRequest']['Shipment']['ShipmentServiceOptions']['Notification'] : array();
+
+				$notifications[] = array(
+					'NotificationCode' => '012',
+					'EMail'            => array(
+						'EMailAddress' => $shipment->get_email(),
+					),
+					'Locale'           => array(
+						'Language' => strtoupper( $language_details['language'] ),
+						'Dialect'  => strtoupper( $language_details['dialect'] ),
+					),
+				);
+
+				$notifications[] = array(
+					'NotificationCode' => '013',
+					'EMail'            => array(
+						'EMailAddress' => $shipment->get_email(),
+					),
+					'Locale'           => array(
+						'Language' => strtoupper( $language_details['language'] ),
+						'Dialect'  => strtoupper( $language_details['dialect'] ),
+					),
+				);
+
+				$request['ShipmentRequest']['Shipment']['ShipmentServiceOptions']['Notification'] = $notifications;
+
+				$request['ShipmentRequest']['Shipment']['ShipmentIndicationType'] = array(
+					'Code' => '02',
+				);
+
+				$request['ShipmentRequest']['Shipment']['AlternateDeliveryAddress'] = array(
+					'Name'             => $location->get_label(),
+					'AttentionName'    => $request['ShipmentRequest']['Shipment']['ShipTo']['AttentionName'],
+					'UPSAccessPointID' => $location->get_code(),
+					'Address'          => array(
+						'AddressLine'       => $location->get_address_1(),
+						'City'              => $location->get_city(),
+						'PostalCode'        => $location->get_postcode(),
+						'CountryCode'       => $location->get_country(),
+						'StateProvinceCode' => in_array( $location->get_country(), array( 'US', 'CA' ), true ) ? $location->get_state() : '',
+					),
+				);
+			}
+		}
 
 		if ( 'return' === $label->get_type() ) {
 			$request['ShipmentRequest']['Shipment']['ReturnService'] = array(

@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: UPS for Shiptastic
- * Plugin URI: https://vendidero.de/shiptastic
+ * Plugin URI: https://vendidero.com/doc/shiptastic/ups-for-shiptastic
  * Description: UPS integration for Shiptastic
  * Author: vendidero
- * Author URI: https://vendidero.de
+ * Author URI: https://vendidero.com
  * Version: 1.0.0
  * Requires PHP: 5.6
  * License: GPLv3
