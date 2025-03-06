@@ -12,6 +12,7 @@ use Vendidero\Shiptastic\ShippingProvider\PickupLocation;
 use Vendidero\Shiptastic\UPS\Package;
 use Vendidero\Shiptastic\Shipment;
 use Vendidero\Shiptastic\ShippingProvider\Auto;
+use Vendidero\Shiptastic\UPS\ShippingProvider\Services\AccessPointDelivery;
 use Vendidero\Shiptastic\UPS\ShippingProvider\Services\Notification;
 
 defined( 'ABSPATH' ) || exit;
@@ -280,17 +281,6 @@ class UPS extends Auto {
 			'ups_86',
 		);
 
-		foreach ( $domestic as $code => $desc ) {
-			$this->register_product(
-				$code,
-				array(
-					'label'          => $desc,
-					'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
-					'zones'          => array( 'dom' ),
-				)
-			);
-		}
-
 		foreach ( array_merge_recursive( $general, $base_available ) as $code => $desc ) {
 			$this->register_product(
 				$code,
@@ -299,6 +289,31 @@ class UPS extends Auto {
 					'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
 				)
 			);
+		}
+
+		foreach ( $domestic as $code => $desc ) {
+			if ( 'ups_70' === $code ) {
+				$product = new AccessPointDelivery(
+					$this,
+					array(
+						'id'             => $code,
+						'label'          => $desc,
+						'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
+						'zones'          => array( 'dom' ),
+					)
+				);
+
+				$this->register_product( $product );
+			} else {
+				$this->register_product(
+					$code,
+					array(
+						'label'          => $desc,
+						'shipment_types' => in_array( $code, $non_returnable, true ) ? array( 'simple' ) : array( 'simple', 'return' ),
+						'zones'          => array( 'dom' ),
+					)
+				);
+			}
 		}
 
 		foreach ( $international as $code => $desc ) {
