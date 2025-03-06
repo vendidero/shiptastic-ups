@@ -568,9 +568,13 @@ class UPS extends Auto {
 		return $supports;
 	}
 
-	protected function fetch_pickup_location( $location_code, $address ) {
+	public function replace_shipping_address_by_pickup_location() {
+		return false;
+	}
+
+	protected function fetch_pickup_location( $location_code, $address = array() ) {
+		$address       = $this->get_address_by_pickup_location_code( $location_code, $address );
 		$location_code = $this->parse_pickup_location_code( $location_code );
-		$address       = $this->parse_pickup_location_address_args( $address );
 
 		if ( empty( $location_code ) ) {
 			return false;
@@ -591,7 +595,8 @@ class UPS extends Auto {
 	}
 
 	protected function parse_pickup_location_code( $location_code ) {
-		$keyword_id = preg_replace( '/[^a-zA-Z0-9]/', '', $location_code );
+		$location_code = parent::parse_pickup_location_code( $location_code );
+		$keyword_id    = preg_replace( '/[^a-zA-Z0-9]/', '', $location_code );
 
 		return $keyword_id;
 	}

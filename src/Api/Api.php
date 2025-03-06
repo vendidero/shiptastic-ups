@@ -187,7 +187,7 @@ class Api extends REST {
 		$address = wp_parse_args(
 			$address,
 			array(
-				'city'     => '',
+				'city'     => Package::is_sandbox_mode() ? 'Atlanta' : '',
 				'postcode' => '',
 				'country'  => '',
 			)
@@ -628,7 +628,7 @@ class Api extends REST {
 				$request['ShipmentRequest']['Shipment']['AlternateDeliveryAddress'] = array(
 					'Name'             => $location->get_label(),
 					'AttentionName'    => $request['ShipmentRequest']['Shipment']['ShipTo']['AttentionName'],
-					'UPSAccessPointID' => $location->get_code(),
+					'UPSAccessPointID' => $location->get_code( 'edit' ),
 					'Address'          => array(
 						'AddressLine'       => $location->get_address_1(),
 						'City'              => $location->get_city(),
