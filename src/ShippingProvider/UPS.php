@@ -587,7 +587,7 @@ class UPS extends Auto {
 		return false;
 	}
 
-	protected function fetch_pickup_location( $location_code, $address = array() ) {
+	protected function fetch_single_pickup_location( $location_code, $address = array() ) {
 		$address       = $this->get_address_by_pickup_location_code( $location_code, $address );
 		$location_code = $this->parse_pickup_location_code( $location_code );
 
