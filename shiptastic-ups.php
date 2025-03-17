@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: UPS for Shiptastic
- * Plugin URI: https://vendidero.com/doc/shiptastic/ups-for-shiptastic
+ * Plugin URI: https://vendidero.com/doc/shiptastic/ups
  * Description: UPS integration for Shiptastic
  * Author: vendidero
  * Author URI: https://vendidero.com
@@ -9,6 +9,9 @@
  * Requires PHP: 5.6
  * License: GPLv3
  * Requires Plugins: shiptastic-for-woocommerce
+ *
+ * Text Domain: shiptastic-ups
+ * Domain Path: /i18n/languages/
  */
 defined( 'ABSPATH' ) || exit;
 

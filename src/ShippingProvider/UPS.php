@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class UPS extends Auto {
 
 	public function get_title( $context = 'view' ) {
-		return _x( 'UPS', 'ups', 'ups-for-shiptastic' );
+		return _x( 'UPS', 'ups', 'shiptastic-ups' );
 	}
 
 	public function get_name( $context = 'view' ) {
@@ -28,7 +28,7 @@ class UPS extends Auto {
 	}
 
 	public function get_description( $context = 'view' ) {
-		return _x( 'Create UPS labels and return labels conveniently.', 'ups', 'ups-for-shiptastic' );
+		return _x( 'Create UPS labels and return labels conveniently.', 'ups', 'shiptastic-ups' );
 	}
 
 	public function get_default_tracking_url_placeholder() {
@@ -81,12 +81,12 @@ class UPS extends Auto {
 	public function get_supported_label_reference_types( $shipment_type = 'simple' ) {
 		$reference_types = array(
 			'ref_1' => array(
-				'label'      => _x( 'Reference 1', 'ups', 'ups-for-shiptastic' ),
-				'default'    => 'return' === $shipment_type ? _x( 'Return #{shipment_number}, order {order_number}', 'ups', 'ups-for-shiptastic' ) : _x( '#{shipment_number}, order {order_number}', 'ups', 'ups-for-shiptastic' ),
+				'label'      => _x( 'Reference 1', 'ups', 'shiptastic-ups' ),
+				'default'    => 'return' === $shipment_type ? _x( 'Return #{shipment_number}, order {order_number}', 'ups', 'shiptastic-ups' ) : _x( '#{shipment_number}, order {order_number}', 'ups', 'shiptastic-ups' ),
 				'max_length' => 35,
 			),
 			'ref_2' => array(
-				'label'      => _x( 'Reference 2', 'ups', 'ups-for-shiptastic' ),
+				'label'      => _x( 'Reference 2', 'ups', 'shiptastic-ups' ),
 				'default'    => '',
 				'max_length' => 35,
 			),
@@ -97,19 +97,19 @@ class UPS extends Auto {
 
 	public function get_available_incoterms() {
 		return array(
-			'CFR' => _x( 'Cost and Freight', 'ups', 'ups-for-shiptastic' ),
-			'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'ups-for-shiptastic' ),
-			'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'ups-for-shiptastic' ),
-			'CPT' => _x( 'Carriage Paid To', 'ups', 'ups-for-shiptastic' ),
-			'DAF' => _x( 'Delivered at Frontier', 'ups', 'ups-for-shiptastic' ),
-			'DDP' => _x( 'Delivery Duty Paid', 'ups', 'ups-for-shiptastic' ),
-			'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'ups-for-shiptastic' ),
-			'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'ups-for-shiptastic' ),
-			'DES' => _x( 'Delivered Ex Ship', 'ups', 'ups-for-shiptastic' ),
-			'EXW' => _x( 'Ex Works', 'ups', 'ups-for-shiptastic' ),
-			'FAS' => _x( 'Free Alongside Ship', 'ups', 'ups-for-shiptastic' ),
-			'FCA' => _x( 'Free Carrier', 'ups', 'ups-for-shiptastic' ),
-			'FOB' => _x( 'Free On Board', 'ups', 'ups-for-shiptastic' ),
+			'CFR' => _x( 'Cost and Freight', 'ups', 'shiptastic-ups' ),
+			'CIF' => _x( 'Cost Insurance and Freight', 'ups', 'shiptastic-ups' ),
+			'CIP' => _x( 'Carriage and Insurance Paid', 'ups', 'shiptastic-ups' ),
+			'CPT' => _x( 'Carriage Paid To', 'ups', 'shiptastic-ups' ),
+			'DAF' => _x( 'Delivered at Frontier', 'ups', 'shiptastic-ups' ),
+			'DDP' => _x( 'Delivery Duty Paid', 'ups', 'shiptastic-ups' ),
+			'DDU' => _x( 'Delivery Duty Unpaid', 'ups', 'shiptastic-ups' ),
+			'DEQ' => _x( 'Delivered Ex Quay', 'ups', 'shiptastic-ups' ),
+			'DES' => _x( 'Delivered Ex Ship', 'ups', 'shiptastic-ups' ),
+			'EXW' => _x( 'Ex Works', 'ups', 'shiptastic-ups' ),
+			'FAS' => _x( 'Free Alongside Ship', 'ups', 'shiptastic-ups' ),
+			'FCA' => _x( 'Free Carrier', 'ups', 'shiptastic-ups' ),
+			'FOB' => _x( 'Free On Board', 'ups', 'shiptastic-ups' ),
 		);
 	}
 
@@ -126,7 +126,7 @@ class UPS extends Auto {
 				$settings,
 				array(
 					array(
-						'title'   => _x( 'Return Service', 'ups', 'ups-for-shiptastic' ),
+						'title'   => _x( 'Return Service', 'ups', 'shiptastic-ups' ),
 						'type'    => 'select',
 						'default' => '9',
 						'value'   => $configuration_set->get_setting( 'return_service', '9', 'additional' ),
@@ -144,12 +144,12 @@ class UPS extends Auto {
 					$settings,
 					array(
 						array(
-							'title'    => _x( 'Default Incoterms', 'ups', 'ups-for-shiptastic' ),
+							'title'    => _x( 'Default Incoterms', 'ups', 'shiptastic-ups' ),
 							'type'     => 'select',
 							'default'  => 'DDP',
 							'id'       => 'label_default_incoterms',
 							'value'    => $this->get_setting( 'label_default_incoterms', 'DDP' ),
-							'desc'     => _x( 'Please select a default incoterms option.', 'ups', 'ups-for-shiptastic' ),
+							'desc'     => _x( 'Please select a default incoterms option.', 'ups', 'shiptastic-ups' ),
 							'desc_tip' => true,
 							'options'  => $this->get_available_incoterms(),
 							'class'    => 'wc-enhanced-select',
@@ -175,99 +175,99 @@ class UPS extends Auto {
 		$domestic      = array();
 
 		$base_available = array(
-			'ups_96' => _x( 'UPS Worldwide Express Freight', 'ups', 'ups-for-shiptastic' ),
-			'ups_71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'ups-for-shiptastic' ),
-			'ups_17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'ups-for-shiptastic' ),
-			'ups_72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'ups-for-shiptastic' ),
+			'ups_96' => _x( 'UPS Worldwide Express Freight', 'ups', 'shiptastic-ups' ),
+			'ups_71' => _x( 'UPS Worldwide Express Freight Midday', 'ups', 'shiptastic-ups' ),
+			'ups_17' => _x( 'UPS Worldwide Economy DDU', 'ups', 'shiptastic-ups' ),
+			'ups_72' => _x( 'UPS Worldwide Economy DDP', 'ups', 'shiptastic-ups' ),
 		);
 
 		if ( 'US' === $base_country ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'shiptastic-ups' ),
 			);
 
 			$international = array(
-				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'ups-for-shiptastic' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'shiptastic-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'shiptastic-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'shiptastic-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'shiptastic-ups' ),
 			);
 
 			$domestic = array(
-				'ups_02' => _x( 'UPS 2nd Day Air', 'ups', 'ups-for-shiptastic' ),
-				'ups_59' => _x( 'UPS 2nd Day Air A.M.', 'ups', 'ups-for-shiptastic' ),
-				'ups_12' => _x( 'UPS 3 Day Select', 'ups', 'ups-for-shiptastic' ),
-				'ups_03' => _x( 'UPS Ground', 'ups', 'ups-for-shiptastic' ),
-				'ups_01' => _x( 'UPS Next Day Air', 'ups', 'ups-for-shiptastic' ),
-				'ups_14' => _x( 'UPS Next Day Air Early', 'ups', 'ups-for-shiptastic' ),
-				'ups_13' => _x( 'UPS Next Day Air Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_02' => _x( 'UPS 2nd Day Air', 'ups', 'shiptastic-ups' ),
+				'ups_59' => _x( 'UPS 2nd Day Air A.M.', 'ups', 'shiptastic-ups' ),
+				'ups_12' => _x( 'UPS 3 Day Select', 'ups', 'shiptastic-ups' ),
+				'ups_03' => _x( 'UPS Ground', 'ups', 'shiptastic-ups' ),
+				'ups_01' => _x( 'UPS Next Day Air', 'ups', 'shiptastic-ups' ),
+				'ups_14' => _x( 'UPS Next Day Air Early', 'ups', 'shiptastic-ups' ),
+				'ups_13' => _x( 'UPS Next Day Air Saver', 'ups', 'shiptastic-ups' ),
 			);
 		} elseif ( 'CA' === $base_country ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'shiptastic-ups' ),
 			);
 
 			$domestic = array(
-				'ups_02' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
-				'ups_13' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
-				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
-				'ups_01' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
-				'ups_14' => _x( 'UPS Express Early', 'ups', 'ups-for-shiptastic' ),
+				'ups_02' => _x( 'UPS Expedited', 'ups', 'shiptastic-ups' ),
+				'ups_13' => _x( 'UPS Express Saver', 'ups', 'shiptastic-ups' ),
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'shiptastic-ups' ),
+				'ups_01' => _x( 'UPS Express', 'ups', 'shiptastic-ups' ),
+				'ups_14' => _x( 'UPS Express Early', 'ups', 'shiptastic-ups' ),
 			);
 
 			$international = array(
-				'ups_65' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
-				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'ups-for-shiptastic' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
+				'ups_65' => _x( 'UPS Express Saver', 'ups', 'shiptastic-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'shiptastic-ups' ),
+				'ups_07' => _x( 'UPS Worldwide Express', 'ups', 'shiptastic-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'shiptastic-ups' ),
 			);
 
 			$this->register_product(
 				'ups_12',
 				array(
-					'label'     => _x( 'UPS 3 Day Select', 'ups', 'ups-for-shiptastic' ),
+					'label'     => _x( 'UPS 3 Day Select', 'ups', 'shiptastic-ups' ),
 					'countries' => array( 'CA', 'US' ),
 				)
 			);
 		} elseif ( $is_eu ) {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
-				'ups_08' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
-				'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'shiptastic-ups' ),
+				'ups_08' => _x( 'UPS Expedited', 'ups', 'shiptastic-ups' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'shiptastic-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'shiptastic-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'shiptastic-ups' ),
 			);
 
 			$domestic = array(
-				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
+				'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'shiptastic-ups' ),
 			);
 
 			if ( 'PL' === $base_country ) {
 				$general = array(
-					'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
-					'ups_08' => _x( 'UPS Expedited', 'ups', 'ups-for-shiptastic' ),
-					'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
-					'ups_54' => _x( 'UPS Express Plus', 'ups', 'ups-for-shiptastic' ),
-					'ups_65' => _x( 'UPS Express Saver', 'ups', 'ups-for-shiptastic' ),
+					'ups_11' => _x( 'UPS Standard', 'ups', 'shiptastic-ups' ),
+					'ups_08' => _x( 'UPS Expedited', 'ups', 'shiptastic-ups' ),
+					'ups_07' => _x( 'UPS Express', 'ups', 'shiptastic-ups' ),
+					'ups_54' => _x( 'UPS Express Plus', 'ups', 'shiptastic-ups' ),
+					'ups_65' => _x( 'UPS Express Saver', 'ups', 'shiptastic-ups' ),
 				);
 
 				$domestic = array(
-					'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'ups-for-shiptastic' ),
-					'ups_83' => _x( 'UPS Today Dedicated Courrier', 'ups', 'ups-for-shiptastic' ),
-					'ups_85' => _x( 'UPS Today Express', 'ups', 'ups-for-shiptastic' ),
-					'ups_86' => _x( 'UPS Today Express Saver', 'ups', 'ups-for-shiptastic' ),
-					'ups_82' => _x( 'UPS Today Standard', 'ups', 'ups-for-shiptastic' ),
+					'ups_70' => _x( 'UPS Access Point Economy', 'ups', 'shiptastic-ups' ),
+					'ups_83' => _x( 'UPS Today Dedicated Courrier', 'ups', 'shiptastic-ups' ),
+					'ups_85' => _x( 'UPS Today Express', 'ups', 'shiptastic-ups' ),
+					'ups_86' => _x( 'UPS Today Express Saver', 'ups', 'shiptastic-ups' ),
+					'ups_82' => _x( 'UPS Today Standard', 'ups', 'shiptastic-ups' ),
 				);
 			} elseif ( 'DE' === $base_country ) {
-				$domestic['ups_74'] = _x( 'UPS Express 12:00', 'ups', 'ups-for-shiptastic' );
+				$domestic['ups_74'] = _x( 'UPS Express 12:00', 'ups', 'shiptastic-ups' );
 			}
 		} else {
 			$general = array(
-				'ups_11' => _x( 'UPS Standard', 'ups', 'ups-for-shiptastic' ),
-				'ups_07' => _x( 'UPS Express', 'ups', 'ups-for-shiptastic' ),
-				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'ups-for-shiptastic' ),
-				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'ups-for-shiptastic' ),
-				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'ups-for-shiptastic' ),
+				'ups_11' => _x( 'UPS Standard', 'ups', 'shiptastic-ups' ),
+				'ups_07' => _x( 'UPS Express', 'ups', 'shiptastic-ups' ),
+				'ups_08' => _x( 'UPS Worldwide Expedited', 'ups', 'shiptastic-ups' ),
+				'ups_54' => _x( 'UPS Worldwide Express Plus', 'ups', 'shiptastic-ups' ),
+				'ups_65' => _x( 'UPS Worldwide Saver', 'ups', 'shiptastic-ups' ),
 			);
 		}
 
@@ -337,7 +337,7 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title' => _x( 'Account number', 'ups', 'ups-for-shiptastic' ),
+				'title' => _x( 'Account number', 'ups', 'shiptastic-ups' ),
 				'type'  => 'text',
 				'desc'  => '',
 				'id'    => 'api_account_number',
@@ -345,8 +345,8 @@ class UPS extends Auto {
 			),
 
 			array(
-				'title' => _x( 'Sandbox mode', 'ups', 'ups-for-shiptastic' ),
-				'desc'  => _x( 'Activate Sandbox mode for testing purposes.', 'ups', 'ups-for-shiptastic' ),
+				'title' => _x( 'Sandbox mode', 'ups', 'shiptastic-ups' ),
+				'desc'  => _x( 'Activate Sandbox mode for testing purposes.', 'ups', 'shiptastic-ups' ),
 				'id'    => 'sandbox_mode',
 				'value' => wc_bool_to_string( $this->get_setting( 'sandbox_mode', 'no' ) ),
 				'type'  => 'shiptastic_toggle',
@@ -358,7 +358,7 @@ class UPS extends Auto {
 				$settings,
 				array(
 					array(
-						'title'    => _x( 'OAuth', 'ups', 'ups-for-shiptastic' ),
+						'title'    => _x( 'OAuth', 'ups', 'shiptastic-ups' ),
 						'type'     => 'shiptastic_oauth',
 						'desc'     => '',
 						'api_type' => 'ups',
@@ -370,11 +370,11 @@ class UPS extends Auto {
 				$settings,
 				array(
 					array(
-						'title'             => _x( 'Client ID', 'ups', 'ups-for-shiptastic' ),
+						'title'             => _x( 'Client ID', 'ups', 'shiptastic-ups' ),
 						'type'              => 'text',
 						'id'                => 'api_username',
 						'default'           => '',
-						'desc'              => '<div class="wc-shiptastic-additional-desc">' . sprintf( _x( 'You\'ll need to <a href="%s">register an app</a> within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API.', 'ups', 'ups-for-shiptastic' ), 'https://developer.ups.com/' ) . '</div>',
+						'desc'              => '<div class="wc-shiptastic-additional-desc">' . sprintf( _x( 'You\'ll need to <a href="%s">register an app</a> within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API.', 'ups', 'shiptastic-ups' ), 'https://developer.ups.com/' ) . '</div>',
 						'value'             => $this->get_setting( 'api_username', '' ),
 						'custom_attributes' => array(
 							'autocomplete' => 'new-password',
@@ -382,7 +382,7 @@ class UPS extends Auto {
 					),
 
 					array(
-						'title'             => _x( 'Client Secret', 'ups', 'ups-for-shiptastic' ),
+						'title'             => _x( 'Client Secret', 'ups', 'shiptastic-ups' ),
 						'type'              => 'password',
 						'desc'              => '',
 						'id'                => 'api_password',
@@ -409,7 +409,7 @@ class UPS extends Auto {
 			$settings,
 			array(
 				array(
-					'title' => _x( 'Tracking', 'ups', 'ups-for-shiptastic' ),
+					'title' => _x( 'Tracking', 'ups', 'shiptastic-ups' ),
 					'type'  => 'title',
 					'id'    => 'tracking_options',
 				),
@@ -497,7 +497,7 @@ class UPS extends Auto {
 				array(
 					array(
 						'id'          => 'incoterms',
-						'label'       => _x( 'Incoterms', 'ups', 'ups-for-shiptastic' ),
+						'label'       => _x( 'Incoterms', 'ups', 'shiptastic-ups' ),
 						'description' => '',
 						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
 						'options'     => $this->get_available_incoterms(),
@@ -524,7 +524,7 @@ class UPS extends Auto {
 			array(
 				array(
 					'id'          => 'return_service',
-					'label'       => _x( 'Return Service', 'ups', 'ups-for-shiptastic' ),
+					'label'       => _x( 'Return Service', 'ups', 'shiptastic-ups' ),
 					'description' => '',
 					'value'       => isset( $default_args['return_service'] ) ? $default_args['return_service'] : '',
 					'options'     => Package::get_return_services(),
@@ -539,7 +539,7 @@ class UPS extends Auto {
 				array(
 					array(
 						'id'          => 'incoterms',
-						'label'       => _x( 'Incoterms', 'ups', 'ups-for-shiptastic' ),
+						'label'       => _x( 'Incoterms', 'ups', 'shiptastic-ups' ),
 						'description' => '',
 						'value'       => isset( $default_args['incoterms'] ) ? $default_args['incoterms'] : '',
 						'options'     => $this->get_available_incoterms(),

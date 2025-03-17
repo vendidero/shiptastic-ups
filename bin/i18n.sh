@@ -15,4 +15,4 @@ output() {
 	echo "$(tput setaf "$1")$2$(tput sgr0)"
 }
 
-wp i18n make-pot ./ ./i18n/languages/ups-for-shiptastic.pot --ignore-domain --exclude="assets/,release/,node_modules/"
+wp i18n make-pot ./ ./i18n/languages/shiptastic-ups.pot --ignore-domain --exclude="assets/,release/,node_modules/"

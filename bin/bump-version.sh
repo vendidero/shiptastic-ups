@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAIN_PLUGIN_FILE="ups-for-shiptastic.php"
+MAIN_PLUGIN_FILE="shiptastic-ups.php"
 PACKAGE_JSON_FILE=package.json
 PACKAGE_FILE=src/Package.php
 COMPOSER_FILE=composer.json

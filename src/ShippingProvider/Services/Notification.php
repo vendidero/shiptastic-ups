@@ -12,7 +12,7 @@ class Notification extends Service {
 	public function __construct( $shipping_provider, $args = array() ) {
 		$args = array(
 			'id'    => 'Notification',
-			'label' => _x( 'Customer Notification', 'ups', 'ups-for-shiptastic' ),
+			'label' => _x( 'Customer Notification', 'ups', 'shiptastic-ups' ),
 		);
 
 		parent::__construct( $shipping_provider, $args );
@@ -61,7 +61,7 @@ class Notification extends Service {
 				array(
 					'id'                => $this->get_label_field_id( 'email' ),
 					'data_type'         => 'email',
-					'label'             => _x( 'E-Mail', 'ups', 'ups-for-shiptastic' ),
+					'label'             => _x( 'E-Mail', 'ups', 'shiptastic-ups' ),
 					'placeholder'       => '',
 					'description'       => '',
 					'value'             => $value,

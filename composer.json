@@ -1,7 +1,7 @@
 {
-  "name": "vendidero/ups-for-shiptastic",
+  "name": "vendidero/shiptastic-ups",
   "description": "The Shiptastic UPS implementation.",
-  "homepage": "https://github.com/vendidero/ups-for-shiptastic",
+  "homepage": "https://github.com/vendidero/shiptastic-ups",
   "license": "GPL-3.0-or-later",
   "type": "wordpress-plugin",
   "prefer-stable": true,

@@ -3,38 +3,38 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: UPS for Shiptastic 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ups-for-shiptastic\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/shiptastic-ups\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-03-17T09:36:53+00:00\n"
+"POT-Creation-Date: 2025-03-17T10:20:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 
 #. Plugin Name of the plugin
-#: ups-for-shiptastic.php
+#: shiptastic-ups.php
 msgid "UPS for Shiptastic"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: ups-for-shiptastic.php
-msgid "https://vendidero.com/doc/shiptastic/ups-for-shiptastic"
+#: shiptastic-ups.php
+msgid "https://vendidero.com/doc/shiptastic/ups"
 msgstr ""
 
 #. Description of the plugin
-#: ups-for-shiptastic.php
+#: shiptastic-ups.php
 msgid "UPS integration for Shiptastic"
 msgstr ""
 
 #. Author of the plugin
-#: ups-for-shiptastic.php
+#: shiptastic-ups.php
 msgid "vendidero"
 msgstr ""
 
 #. Author URI of the plugin
-#: ups-for-shiptastic.php
+#: shiptastic-ups.php
 msgid "https://vendidero.com"
 msgstr ""
 
