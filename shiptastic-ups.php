@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: UPS for Shiptastic
+ * Plugin Name: Shiptastic UPS integration
  * Plugin URI: https://vendidero.com/doc/shiptastic/ups
  * Description: UPS integration for Shiptastic
  * Author: vendidero
