@@ -1,0 +1,559 @@
+# Copyright (C) 2025 vendidero
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: UPS for Shiptastic 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ups-for-shiptastic\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-03-17T09:36:53+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+
+#. Plugin Name of the plugin
+#: ups-for-shiptastic.php
+msgid "UPS for Shiptastic"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: ups-for-shiptastic.php
+msgid "https://vendidero.com/doc/shiptastic/ups-for-shiptastic"
+msgstr ""
+
+#. Description of the plugin
+#: ups-for-shiptastic.php
+msgid "UPS integration for Shiptastic"
+msgstr ""
+
+#. Author of the plugin
+#: ups-for-shiptastic.php
+msgid "vendidero"
+msgstr ""
+
+#. Author URI of the plugin
+#: ups-for-shiptastic.php
+msgid "https://vendidero.com"
+msgstr ""
+
+#: src/Api/Api.php:36
+msgctxt "ups"
+msgid "There was an error while cancelling the label"
+msgstr ""
+
+#: src/Api/Api.php:474
+msgctxt "ups-reasons-for-export"
+msgid "Sale"
+msgstr ""
+
+#: src/Api/Api.php:475
+msgctxt "ups-reasons-for-export"
+msgid "Gift"
+msgstr ""
+
+#: src/Api/Api.php:476
+msgctxt "ups-reasons-for-export"
+msgid "Sample"
+msgstr ""
+
+#: src/Api/Api.php:477
+msgctxt "ups-reasons-for-export"
+msgid "Return"
+msgstr ""
+
+#: src/Api/Api.php:478
+msgctxt "ups-reasons-for-export"
+msgid "Repair"
+msgstr ""
+
+#: src/Api/Api.php:479
+msgctxt "ups-reasons-for-export"
+msgid "Inter company data"
+msgstr ""
+
+#: src/Api/Api.php:501
+msgctxt "ups-packaging-type"
+msgid "Customer Supplied Package"
+msgstr ""
+
+#: src/Api/Api.php:502
+msgctxt "ups-packaging-type"
+msgid "Tube"
+msgstr ""
+
+#: src/Api/Api.php:503
+msgctxt "ups-packaging-type"
+msgid "PAK"
+msgstr ""
+
+#: src/Api/Api.php:504
+msgctxt "ups-packaging-type"
+msgid "UPS Express Box"
+msgstr ""
+
+#: src/Api/Api.php:505
+msgctxt "ups-packaging-type"
+msgid "UPS 25KG Box"
+msgstr ""
+
+#: src/Api/Api.php:506
+msgctxt "ups-packaging-type"
+msgid "UPS 10KG Box"
+msgstr ""
+
+#: src/Api/Api.php:507
+msgctxt "ups-packaging-type"
+msgid "Pallet"
+msgstr ""
+
+#: src/Api/Api.php:508
+msgctxt "ups-packaging-type"
+msgid "Small Express Box"
+msgstr ""
+
+#: src/Api/Api.php:509
+msgctxt "ups-packaging-type"
+msgid "Medium Express Box"
+msgstr ""
+
+#: src/Api/Api.php:510
+msgctxt "ups-packaging-type"
+msgid "Large Express Box"
+msgstr ""
+
+#: src/Api/Api.php:511
+msgctxt "ups-packaging-type"
+msgid "Flats"
+msgstr ""
+
+#: src/Api/Api.php:512
+msgctxt "ups-packaging-type"
+msgid "Parcels"
+msgstr ""
+
+#: src/Api/Api.php:513
+msgctxt "ups-packaging-type"
+msgid "BPM"
+msgstr ""
+
+#: src/Api/Api.php:514
+msgctxt "ups-packaging-type"
+msgid "First Class"
+msgstr ""
+
+#: src/Api/Api.php:515
+msgctxt "ups-packaging-type"
+msgid "Priority"
+msgstr ""
+
+#: src/Api/Api.php:516
+msgctxt "ups-packaging-type"
+msgid "Machineables"
+msgstr ""
+
+#: src/Api/Api.php:517
+msgctxt "ups-packaging-type"
+msgid "Irregulars"
+msgstr ""
+
+#: src/Api/Api.php:518
+msgctxt "ups-packaging-type"
+msgid "Parcel Post"
+msgstr ""
+
+#: src/Api/Api.php:519
+msgctxt "ups-packaging-type"
+msgid "BPM Parcel"
+msgstr ""
+
+#: src/Api/Api.php:520
+msgctxt "ups-packaging-type"
+msgid "Media Mail"
+msgstr ""
+
+#: src/Api/Api.php:521
+msgctxt "ups-packaging-type"
+msgid "BPM Flat"
+msgstr ""
+
+#: src/Api/Api.php:522
+msgctxt "ups-packaging-type"
+msgid "Standard Flat"
+msgstr ""
+
+#: src/Api/Api.php:672
+#: src/Api/Api.php:788
+msgctxt "ups"
+msgid "There was an unknown error calling the UPS API."
+msgstr ""
+
+#: src/Api/Api.php:698
+msgctxt "ups"
+msgid "Error while uploading UPS label."
+msgstr ""
+
+#: src/Api/Api.php:701
+msgctxt "ups"
+msgid "Could not convert GIF to PDF file: %1$s"
+msgstr ""
+
+#: src/Api/Api.php:813
+msgctxt "shiptastic"
+msgid "UPS"
+msgstr ""
+
+#: src/Package.php:85
+msgctxt "ups"
+msgid "UPS Print and Mail (PNM)"
+msgstr ""
+
+#: src/Package.php:86
+msgctxt "ups"
+msgid "UPS Return Service 1-Attempt (RS1)"
+msgstr ""
+
+#: src/Package.php:87
+msgctxt "ups"
+msgid "UPS Return Service 3-Attempt (RS3)"
+msgstr ""
+
+#: src/Package.php:88
+msgctxt "ups"
+msgid "UPS Electronic Return Label (ERL)"
+msgstr ""
+
+#: src/Package.php:89
+msgctxt "ups"
+msgid "UPS Print Return Label (PRL)"
+msgstr ""
+
+#: src/Package.php:90
+msgctxt "ups"
+msgid "UPS Exchange Print Return Label"
+msgstr ""
+
+#: src/ShippingProvider/Services/Notification.php:15
+msgctxt "ups"
+msgid "Customer Notification"
+msgstr ""
+
+#: src/ShippingProvider/Services/Notification.php:64
+msgctxt "ups"
+msgid "E-Mail"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:23
+msgctxt "ups"
+msgid "UPS"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:31
+msgctxt "ups"
+msgid "Create UPS labels and return labels conveniently."
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:84
+msgctxt "ups"
+msgid "Reference 1"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:85
+msgctxt "ups"
+msgid "Return #{shipment_number}, order {order_number}"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:85
+msgctxt "ups"
+msgid "#{shipment_number}, order {order_number}"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:89
+msgctxt "ups"
+msgid "Reference 2"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:100
+msgctxt "ups"
+msgid "Cost and Freight"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:101
+msgctxt "ups"
+msgid "Cost Insurance and Freight"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:102
+msgctxt "ups"
+msgid "Carriage and Insurance Paid"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:103
+msgctxt "ups"
+msgid "Carriage Paid To"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:104
+msgctxt "ups"
+msgid "Delivered at Frontier"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:105
+msgctxt "ups"
+msgid "Delivery Duty Paid"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:106
+msgctxt "ups"
+msgid "Delivery Duty Unpaid"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:107
+msgctxt "ups"
+msgid "Delivered Ex Quay"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:108
+msgctxt "ups"
+msgid "Delivered Ex Ship"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:109
+msgctxt "ups"
+msgid "Ex Works"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:110
+msgctxt "ups"
+msgid "Free Alongside Ship"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:111
+msgctxt "ups"
+msgid "Free Carrier"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:112
+msgctxt "ups"
+msgid "Free On Board"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:129
+#: src/ShippingProvider/UPS.php:527
+msgctxt "ups"
+msgid "Return Service"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:147
+msgctxt "ups"
+msgid "Default Incoterms"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:152
+msgctxt "ups"
+msgid "Please select a default incoterms option."
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:178
+msgctxt "ups"
+msgid "UPS Worldwide Express Freight"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:179
+msgctxt "ups"
+msgid "UPS Worldwide Express Freight Midday"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:180
+msgctxt "ups"
+msgid "UPS Worldwide Economy DDU"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:181
+msgctxt "ups"
+msgid "UPS Worldwide Economy DDP"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:186
+#: src/ShippingProvider/UPS.php:207
+#: src/ShippingProvider/UPS.php:234
+#: src/ShippingProvider/UPS.php:247
+#: src/ShippingProvider/UPS.php:266
+msgctxt "ups"
+msgid "UPS Standard"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:190
+#: src/ShippingProvider/UPS.php:221
+msgctxt "ups"
+msgid "UPS Worldwide Express"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:191
+#: src/ShippingProvider/UPS.php:220
+#: src/ShippingProvider/UPS.php:268
+msgctxt "ups"
+msgid "UPS Worldwide Expedited"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:192
+#: src/ShippingProvider/UPS.php:222
+#: src/ShippingProvider/UPS.php:237
+#: src/ShippingProvider/UPS.php:269
+msgctxt "ups"
+msgid "UPS Worldwide Express Plus"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:193
+#: src/ShippingProvider/UPS.php:238
+#: src/ShippingProvider/UPS.php:270
+msgctxt "ups"
+msgid "UPS Worldwide Saver"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:197
+msgctxt "ups"
+msgid "UPS 2nd Day Air"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:198
+msgctxt "ups"
+msgid "UPS 2nd Day Air A.M."
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:199
+#: src/ShippingProvider/UPS.php:228
+msgctxt "ups"
+msgid "UPS 3 Day Select"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:200
+msgctxt "ups"
+msgid "UPS Ground"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:201
+msgctxt "ups"
+msgid "UPS Next Day Air"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:202
+msgctxt "ups"
+msgid "UPS Next Day Air Early"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:203
+msgctxt "ups"
+msgid "UPS Next Day Air Saver"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:211
+#: src/ShippingProvider/UPS.php:235
+#: src/ShippingProvider/UPS.php:248
+msgctxt "ups"
+msgid "UPS Expedited"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:212
+#: src/ShippingProvider/UPS.php:219
+#: src/ShippingProvider/UPS.php:251
+msgctxt "ups"
+msgid "UPS Express Saver"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:213
+#: src/ShippingProvider/UPS.php:242
+#: src/ShippingProvider/UPS.php:255
+msgctxt "ups"
+msgid "UPS Access Point Economy"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:214
+#: src/ShippingProvider/UPS.php:236
+#: src/ShippingProvider/UPS.php:249
+#: src/ShippingProvider/UPS.php:267
+msgctxt "ups"
+msgid "UPS Express"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:215
+msgctxt "ups"
+msgid "UPS Express Early"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:250
+msgctxt "ups"
+msgid "UPS Express Plus"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:256
+msgctxt "ups"
+msgid "UPS Today Dedicated Courrier"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:257
+msgctxt "ups"
+msgid "UPS Today Express"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:258
+msgctxt "ups"
+msgid "UPS Today Express Saver"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:259
+msgctxt "ups"
+msgid "UPS Today Standard"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:262
+msgctxt "ups"
+msgid "UPS Express 12:00"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:340
+msgctxt "ups"
+msgid "Account number"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:348
+msgctxt "ups"
+msgid "Sandbox mode"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:349
+msgctxt "ups"
+msgid "Activate Sandbox mode for testing purposes."
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:361
+msgctxt "ups"
+msgid "OAuth"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:373
+msgctxt "ups"
+msgid "Client ID"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:377
+msgctxt "ups"
+msgid "You'll need to <a href=\"%s\">register an app</a> within the UPS Developer Portal to retrieve your Client ID and Secret and connect with the API."
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:385
+msgctxt "ups"
+msgid "Client Secret"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:412
+msgctxt "ups"
+msgid "Tracking"
+msgstr ""
+
+#: src/ShippingProvider/UPS.php:500
+#: src/ShippingProvider/UPS.php:542
+msgctxt "ups"
+msgid "Incoterms"
+msgstr ""
