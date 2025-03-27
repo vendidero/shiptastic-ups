@@ -1,4 +1,4 @@
-=== Shiptastic UPS integration ===
+=== Shiptastic integration for UPS ===
 Contributors: vendidero, vdwoocommercesupport
 Tags: shipping, UPS, shiptastic, woocommerce
 Requires at least: 5.4

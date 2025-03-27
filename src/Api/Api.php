@@ -33,7 +33,7 @@ class Api extends REST {
 			}
 		}
 
-		return new ShipmentError( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'shiptastic-ups' ) );
+		return new ShipmentError( 'ups_error', _x( 'There was an error while cancelling the label', 'ups', 'shiptastic-integration-for-ups' ) );
 	}
 
 	protected function limit_length( $str, $max_length = -1 ) {
@@ -471,12 +471,12 @@ class Api extends REST {
 			$default_reason = ! empty( $customs_data['export_reason'] ) ? strtoupper( $customs_data['export_reason'] ) : 'SALE';
 
 			$available_reasons_for_export = array(
-				'SALE'             => _x( 'Sale', 'ups-reasons-for-export', 'shiptastic-ups' ),
-				'GIFT'             => _x( 'Gift', 'ups-reasons-for-export', 'shiptastic-ups' ),
-				'SAMPLE'           => _x( 'Sample', 'ups-reasons-for-export', 'shiptastic-ups' ),
-				'RETURN'           => _x( 'Return', 'ups-reasons-for-export', 'shiptastic-ups' ),
-				'REPAIR'           => _x( 'Repair', 'ups-reasons-for-export', 'shiptastic-ups' ),
-				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'shiptastic-ups' ),
+				'SALE'             => _x( 'Sale', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
+				'GIFT'             => _x( 'Gift', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
+				'SAMPLE'           => _x( 'Sample', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
+				'RETURN'           => _x( 'Return', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
+				'REPAIR'           => _x( 'Repair', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
+				'INTERCOMPANYDATA' => _x( 'Inter company data', 'ups-reasons-for-export', 'shiptastic-integration-for-ups' ),
 			);
 
 			$service_data['InternationalForms'] = array(
@@ -498,28 +498,28 @@ class Api extends REST {
 		}
 
 		$available_packaging_types = array(
-			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'shiptastic-ups' ),
-			'03' => _x( 'Tube', 'ups-packaging-type', 'shiptastic-ups' ),
-			'04' => _x( 'PAK', 'ups-packaging-type', 'shiptastic-ups' ),
-			'21' => _x( 'UPS Express Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'24' => _x( 'UPS 25KG Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'25' => _x( 'UPS 10KG Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'30' => _x( 'Pallet', 'ups-packaging-type', 'shiptastic-ups' ),
-			'2a' => _x( 'Small Express Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'2b' => _x( 'Medium Express Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'2c' => _x( 'Large Express Box', 'ups-packaging-type', 'shiptastic-ups' ),
-			'56' => _x( 'Flats', 'ups-packaging-type', 'shiptastic-ups' ),
-			'57' => _x( 'Parcels', 'ups-packaging-type', 'shiptastic-ups' ),
-			'58' => _x( 'BPM', 'ups-packaging-type', 'shiptastic-ups' ),
-			'59' => _x( 'First Class', 'ups-packaging-type', 'shiptastic-ups' ),
-			'60' => _x( 'Priority', 'ups-packaging-type', 'shiptastic-ups' ),
-			'61' => _x( 'Machineables', 'ups-packaging-type', 'shiptastic-ups' ),
-			'62' => _x( 'Irregulars', 'ups-packaging-type', 'shiptastic-ups' ),
-			'63' => _x( 'Parcel Post', 'ups-packaging-type', 'shiptastic-ups' ),
-			'64' => _x( 'BPM Parcel', 'ups-packaging-type', 'shiptastic-ups' ),
-			'65' => _x( 'Media Mail', 'ups-packaging-type', 'shiptastic-ups' ),
-			'66' => _x( 'BPM Flat', 'ups-packaging-type', 'shiptastic-ups' ),
-			'67' => _x( 'Standard Flat', 'ups-packaging-type', 'shiptastic-ups' ),
+			'02' => _x( 'Customer Supplied Package', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'03' => _x( 'Tube', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'04' => _x( 'PAK', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'21' => _x( 'UPS Express Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'24' => _x( 'UPS 25KG Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'25' => _x( 'UPS 10KG Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'30' => _x( 'Pallet', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'2a' => _x( 'Small Express Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'2b' => _x( 'Medium Express Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'2c' => _x( 'Large Express Box', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'56' => _x( 'Flats', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'57' => _x( 'Parcels', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'58' => _x( 'BPM', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'59' => _x( 'First Class', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'60' => _x( 'Priority', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'61' => _x( 'Machineables', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'62' => _x( 'Irregulars', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'63' => _x( 'Parcel Post', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'64' => _x( 'BPM Parcel', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'65' => _x( 'Media Mail', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'66' => _x( 'BPM Flat', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
+			'67' => _x( 'Standard Flat', 'ups-packaging-type', 'shiptastic-integration-for-ups' ),
 		);
 
 		$default_packaging_type = '02';
@@ -669,7 +669,7 @@ class Api extends REST {
 			$parcel_data = $body['ShipmentResponse'];
 
 			if ( 1 !== absint( $parcel_data['Response']['ResponseStatus']['Code'] ) ) {
-				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'shiptastic-ups' ) );
+				$error->add( 'error', _x( 'There was an unknown error calling the UPS API.', 'ups', 'shiptastic-integration-for-ups' ) );
 
 				return $error;
 			}
@@ -695,10 +695,10 @@ class Api extends REST {
 					if ( $path = $label->upload_label_file( $label_pdf ) ) {
 						$label->set_path( $path );
 					} else {
-						$error->add( 'upload', _x( 'Error while uploading UPS label.', 'ups', 'shiptastic-ups' ) );
+						$error->add( 'upload', _x( 'Error while uploading UPS label.', 'ups', 'shiptastic-integration-for-ups' ) );
 					}
 				} catch ( \Exception $e ) {
-					$error->add( 'upload', sprintf( _x( 'Could not convert GIF to PDF file: %1$s', 'ups', 'shiptastic-ups' ), $e->getMessage() ) );
+					$error->add( 'upload', sprintf( _x( 'Could not convert GIF to PDF file: %1$s', 'ups', 'shiptastic-integration-for-ups' ), $e->getMessage() ) );
 				}
 			}
 
@@ -785,7 +785,7 @@ class Api extends REST {
 		}
 
 		if ( ! wc_stc_shipment_wp_error_has_errors( $error ) ) {
-			$error->add( $code, _x( 'There was an unknown error calling the UPS API.', 'ups', 'shiptastic-ups' ) );
+			$error->add( $code, _x( 'There was an unknown error calling the UPS API.', 'ups', 'shiptastic-integration-for-ups' ) );
 		}
 
 		$response->set_error( $error );
@@ -810,6 +810,6 @@ class Api extends REST {
 	}
 
 	public function get_title() {
-		return _x( 'UPS', 'shiptastic', 'shiptastic-ups' );
+		return _x( 'UPS', 'shiptastic', 'shiptastic-integration-for-ups' );
 	}
 }

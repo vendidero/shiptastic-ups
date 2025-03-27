@@ -57,8 +57,8 @@ class Package {
 
 		$locale = apply_filters( 'plugin_locale', $locale, 'dhl-for-shiptastic' );
 
-		load_textdomain( 'shiptastic-ups', trailingslashit( WP_LANG_DIR ) . 'shiptastic-ups/shiptastic-ups-' . $locale . '.mo' );
-		load_plugin_textdomain( 'shiptastic-ups', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
+		load_textdomain( 'shiptastic-integration-for-ups', trailingslashit( WP_LANG_DIR ) . 'shiptastic-integration-for-ups/shiptastic-integration-for-ups-' . $locale . '.mo' );
+		load_plugin_textdomain( 'shiptastic-integration-for-ups', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
 	}
 
 	public static function check_version() {
@@ -82,12 +82,12 @@ class Package {
 	 */
 	public static function get_return_services() {
 		$services = array(
-			'2'  => _x( 'UPS Print and Mail (PNM)', 'ups', 'shiptastic-ups' ),
-			'3'  => _x( 'UPS Return Service 1-Attempt (RS1)', 'ups', 'shiptastic-ups' ),
-			'5'  => _x( 'UPS Return Service 3-Attempt (RS3)', 'ups', 'shiptastic-ups' ),
-			'8'  => _x( 'UPS Electronic Return Label (ERL)', 'ups', 'shiptastic-ups' ),
-			'9'  => _x( 'UPS Print Return Label (PRL)', 'ups', 'shiptastic-ups' ),
-			'10' => _x( 'UPS Exchange Print Return Label', 'ups', 'shiptastic-ups' ),
+			'2'  => _x( 'UPS Print and Mail (PNM)', 'ups', 'shiptastic-integration-for-ups' ),
+			'3'  => _x( 'UPS Return Service 1-Attempt (RS1)', 'ups', 'shiptastic-integration-for-ups' ),
+			'5'  => _x( 'UPS Return Service 3-Attempt (RS3)', 'ups', 'shiptastic-integration-for-ups' ),
+			'8'  => _x( 'UPS Electronic Return Label (ERL)', 'ups', 'shiptastic-integration-for-ups' ),
+			'9'  => _x( 'UPS Print Return Label (PRL)', 'ups', 'shiptastic-integration-for-ups' ),
+			'10' => _x( 'UPS Exchange Print Return Label', 'ups', 'shiptastic-integration-for-ups' ),
 		);
 
 		return $services;
@@ -268,7 +268,7 @@ class Package {
 			$type = 'info';
 		}
 
-		$logger->{$type}( $message, array( 'source' => 'shiptastic-ups' ) );
+		$logger->{$type}( $message, array( 'source' => 'shiptastic-integration-for-ups' ) );
 
 		return true;
 	}

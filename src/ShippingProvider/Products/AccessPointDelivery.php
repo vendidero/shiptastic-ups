@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Shiptastic\UPS\ShippingProvider\Services;
+namespace Vendidero\Shiptastic\UPS\ShippingProvider\Products;
 
 use Vendidero\Shiptastic\ShippingProvider\Product;
 
